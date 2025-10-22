@@ -64,7 +64,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        // This is your live backend URL on Render!
+        // IMPORTANT: Ensure your backend is deployed to Render with the updated model ID (e.g., gemini-2.5-flash)
         const BACKEND_URL = 'https://cortexluma-backend.onrender.com'; 
         
         // DOM Elements
@@ -78,27 +78,43 @@
 
         // --- Core Functions ---
 
+        /**
+         * Safely adds a message to the chat container using standard DOM methods 
+         * to avoid Content Security Policy (CSP) 'unsafe-eval' warnings.
+         */
         function addMessage(sender, message) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `flex items-start gap-3 ${sender === 'user' ? 'justify-end' : ''}`;
             
-            const safeMessage = document.createElement('div');
-            safeMessage.textContent = message;
+            const contentContainer = document.createElement('div');
+            const avatar = document.createElement('div');
+            
+            avatar.className = 'p-2 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold flex-shrink-0';
 
             if (sender === 'ai') {
-                messageDiv.innerHTML = `
-                    <div class="bg-blue-600 p-2 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold flex-shrink-0">AI</div>
-                    <div class="bg-slate-700 rounded-lg p-3 max-w-md message-content">
-                        ${safeMessage.innerHTML.replace(/\n/g, '<br>')}
-                    </div>
-                `;
+                // AI message styling and content insertion
+                avatar.textContent = 'AI';
+                avatar.classList.add('bg-blue-600');
+                contentContainer.classList.add('bg-slate-700', 'rounded-lg', 'p-3', 'max-w-md');
+                
+                // ONLY use innerHTML here to allow <br> tags for new lines, 
+                // but since 'message' comes from the backend API, it is generally safer.
+                contentContainer.innerHTML = message.replace(/\n/g, '<br>');
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(contentContainer);
+                
             } else {
-                 messageDiv.innerHTML = `
-                    <div class="bg-slate-600 rounded-lg p-3 max-w-md">
-                        <p>${safeMessage.innerHTML.replace(/\n/g, '<br>')}</p>
-                    </div>
-                    <div class="bg-indigo-600 p-2 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold flex-shrink-0">You</div>
-                `;
+                // User message styling and content insertion
+                avatar.textContent = 'You';
+                avatar.classList.add('bg-indigo-600');
+                contentContainer.classList.add('bg-slate-600', 'rounded-lg', 'p-3', 'max-w-md');
+                
+                // Use textContent for user input for maximum safety (prevents XSS)
+                contentContainer.textContent = message;
+
+                messageDiv.appendChild(contentContainer);
+                messageDiv.appendChild(avatar);
             }
 
             chatContainer.appendChild(messageDiv);
@@ -151,32 +167,29 @@
                     let errorMsg = `Server returned status ${response.status}.`;
                     
                     if (contentType && contentType.indexOf("application/json") !== -1) {
-                        // Attempt to read a specific error message from the backend JSON
                         const errorData = await response.json();
                         errorMsg = errorData.error || errorMsg;
                     } else {
-                        // Generic error, likely an internal server crash (e.g., the original 404 from Gemini)
-                        errorMsg += ' **Please check your Render backend logs for details on the "Upstream API error."**';
+                        // This handles the likely 404/500 errors from the Gemini model failure
+                        errorMsg += ' **Backend Error: The Gemini API call failed. Check Render logs for model errors (e.g., 404 NOT FOUND).**';
                     }
 
                     throw new Error(errorMsg);
                 }
 
                 const result = await response.json();
-                // Your backend sends back a "reply" key
                 const aiResponse = result.reply; 
 
                 if (aiResponse) {
                     removeLoadingIndicator();
                     addMessage('ai', aiResponse);
                 } else {
-                    throw new Error('Received an empty response from the backend. (Backend may be running, but API call failed.)');
+                    throw new Error('Received an empty reply from the backend.');
                 }
 
             } catch (error) {
                 console.error('Backend Error:', error);
                 removeLoadingIndicator();
-                // Display the detailed error message to the user
                 errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
             } finally {
                 setLoadingState(false);
