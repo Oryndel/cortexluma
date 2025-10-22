@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CortexLuma AI</title>
+    <title>CortexLuma AI Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,176 +12,172 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Simple scrollbar styling */
+        /* Custom scrollbar for a sleek, modern look */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #1e293b; /* slate-800 */
+            background: #0f172a; /* slate-900 */
         }
         ::-webkit-scrollbar-thumb {
-            background: #475569; /* slate-600 */
+            background: #334155; /* slate-700 */
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; /* slate-500 */
+            background: #475569; /* slate-600 */
         }
+        
+        /* Custom typing animation for the loading indicator */
+        @keyframes pulse-dot {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+        .animate-pulse-dot span:nth-child(1) { animation: pulse-dot 1.5s infinite; }
+        .animate-pulse-dot span:nth-child(2) { animation: pulse-dot 1.5s infinite 0.2s; }
+        .animate-pulse-dot span:nth-child(3) { animation: pulse-dot 1.5s infinite 0.4s; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-200 flex items-center justify-center min-h-screen">
+<body class="bg-slate-900 text-slate-200 flex items-center justify-center min-h-screen p-4">
 
-    <div class="max-w-2xl w-full mx-auto p-4">
-        <div class="bg-slate-800 rounded-2xl shadow-2xl flex flex-col h-[80vh] max-h-[700px]">
-            
-            <div class="p-4 border-b border-slate-700 text-center">
-                <h1 class="text-2xl font-bold text-white">CortexLuma AI</h1>
-                <p class="text-sm text-slate-400">Powered by a secure Render backend</p>
-            </div>
+    <div class="max-w-3xl w-full mx-auto">
+        <header class="text-center mb-6 pt-2 pb-4 border-b border-slate-700">
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-sky-400 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 mr-2">
+                    <path fill-rule="evenodd" d="M11.47 1.72a.75.75 0 0 1 1.06 0l3.06 3.06a2.25 2.25 0 0 0 3.18 0l2.478-2.478a.75.75 0 0 1 1.06 1.06l-2.477 2.479a2.25 2.25 0 0 0 0 3.18l3.06 3.06a.75.75 0 0 1 0 1.06l-3.06 3.06a2.25 2.25 0 0 0-3.18 0l-2.479-2.478a.75.75 0 0 1-1.06 1.06l2.478 2.478a2.25 2.25 0 0 0 3.18 0l3.06-3.06a.75.75 0 0 1 1.06 0L23.78 12.53a.75.75 0 0 1 0 1.06l-3.06 3.06a2.25 2.25 0 0 0-3.18 0l-2.478 2.477a.75.75 0 0 1-1.06-1.06l2.479-2.478a2.25 2.25 0 0 0 0-3.18l-3.06-3.06a.75.75 0 0 1 0-1.06l3.06-3.06a2.25 2.25 0 0 0 3.18 0l2.478 2.479a.75.75 0 0 1-1.06 1.06l-2.477-2.478a.75.75 0 0 1-.002-1.06l3.06-3.06a.75.75 0 0 1 1.06 0l3.06 3.06a.75.75 0 0 1 0 1.06l-3.06 3.06a2.25 2.25 0 0 0 0 3.18l3.06 3.06a.75.75 0 0 1 0 1.06L13.53 23.78a.75.75 0 0 1-1.06 0l-3.06-3.06a2.25 2.25 0 0 0-3.18 0L3.78 23.78a.75.75 0 0 1-1.06 0L.72 20.72a.75.75 0 0 1 0-1.06l3.06-3.06a2.25 2.25 0 0 0 0-3.18l-3.06-3.06a.75.75 0 0 1 0-1.06l3.06-3.06a2.25 2.25 0 0 0 3.18 0l2.478 2.477a.75.75 0 0 1 1.06-1.06l-2.479-2.478a2.25 2.25 0 0 0-3.18 0l-3.06 3.06a.75.75 0 0 1-1.06 0l-3.06-3.06a.75.75 0 0 1 0-1.06L9.53 1.72a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                </svg>
+                CortexLuma
+            </h1>
+            <p class="text-slate-500 mt-1 text-sm">Powered by Gemini AI</p>
+        </header>
 
-            <div id="chat-section" class="flex flex-col flex-grow h-full p-4 overflow-hidden">
-                <div id="chat-container" class="flex-grow overflow-y-auto pr-2 space-y-4">
-                    <div class="flex items-start gap-3">
-                        <div class="bg-blue-600 p-2 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold flex-shrink-0">AI</div>
-                        <div class="bg-slate-700 rounded-lg p-3 max-w-md">
-                            <p>Hello! How can I help you today?</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 pt-4 border-t border-slate-700">
-                    <form id="chat-form" class="flex items-center gap-2">
-                        <textarea id="chat-input" class="flex-grow bg-slate-700 border border-slate-600 rounded-md p-3 text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none" placeholder="Type your message..." rows="1" required></textarea>
-                        <button id="send-button" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                        </button>
-                    </form>
-                    <div id="error-message" class="text-red-400 text-sm mt-2"></div>
+        <div id="chat-messages" class="bg-slate-800/50 backdrop-blur-sm p-6 rounded-xl shadow-inner shadow-slate-900 h-[60vh] overflow-y-auto mb-6 flex flex-col space-y-4">
+            <div class="flex justify-start">
+                <div class="bg-sky-600/90 text-white p-3 rounded-2xl rounded-tl-sm max-w-xs md:max-w-xl text-base shadow-lg chat-bubble">
+                    Hello! I'm CortexLuma, a **Gemini-powered** AI. How can I help you today?
                 </div>
             </div>
+            </div>
 
-        </div>
+        <form id="chat-form" class="flex flex-col space-y-2">
+            <div class="relative bg-slate-800 rounded-xl shadow-2xl border border-slate-700">
+                <textarea 
+                    id="chat-input" 
+                    class="w-full p-4 pr-16 bg-transparent text-slate-200 rounded-xl resize-none focus:outline-none focus:ring-0 transition duration-150 overflow-hidden placeholder-slate-500" 
+                    rows="1" 
+                    placeholder="Type your message..."
+                    aria-label="Chat input"
+                    style="min-height: 56px; max-height: 200px;"
+                ></textarea>
+                <button 
+                    type="submit" 
+                    id="send-button"
+                    class="absolute right-3 bottom-3 bg-indigo-500 hover:bg-indigo-400 text-white p-2 rounded-full transition duration-200 disabled:opacity-30 disabled:hover:bg-indigo-500"
+                    aria-label="Send message"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405Z" />
+                    </svg>
+                </button>
+            </div>
+            <div id="error-message" class="text-red-400 text-sm h-4 ml-2"></div>
+        </form>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        // IMPORTANT: Ensure your backend is deployed to Render with the updated model ID (e.g., gemini-2.5-flash)
-        const BACKEND_URL = 'https://cortexluma-backend.onrender.com'; 
-        
-        // DOM Elements
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
-        const chatContainer = document.getElementById('chat-container');
-        const sendButton = document.getElementById('send-button');
+        const chatMessages = document.getElementById('chat-messages');
         const errorMessage = document.getElementById('error-message');
+        const sendButton = document.getElementById('send-button');
+        // NOTE: Ensure this URL points to your deployed backend (e.g., on Render)
+        const BACKEND_URL = "https://cortexluma-backend.onrender.com/api/chat"; 
 
         let isLoading = false;
 
-        // --- Core Functions ---
+        // --- Helper Functions ---
 
-        /**
-         * Safely adds a message to the chat container using standard DOM methods 
-         * to avoid Content Security Policy (CSP) 'unsafe-eval' warnings.
-         */
-        function addMessage(sender, message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `flex items-start gap-3 ${sender === 'user' ? 'justify-end' : ''}`;
-            
-            const contentContainer = document.createElement('div');
-            const avatar = document.createElement('div');
-            
-            avatar.className = 'p-2 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold flex-shrink-0';
-
-            if (sender === 'ai') {
-                // AI message styling and content insertion
-                avatar.textContent = 'AI';
-                avatar.classList.add('bg-blue-600');
-                contentContainer.classList.add('bg-slate-700', 'rounded-lg', 'p-3', 'max-w-md');
-                
-                // ONLY use innerHTML here to allow <br> tags for new lines, 
-                // but since 'message' comes from the backend API, it is generally safer.
-                contentContainer.innerHTML = message.replace(/\n/g, '<br>');
-                
-                messageDiv.appendChild(avatar);
-                messageDiv.appendChild(contentContainer);
-                
-            } else {
-                // User message styling and content insertion
-                avatar.textContent = 'You';
-                avatar.classList.add('bg-indigo-600');
-                contentContainer.classList.add('bg-slate-600', 'rounded-lg', 'p-3', 'max-w-md');
-                
-                // Use textContent for user input for maximum safety (prevents XSS)
-                contentContainer.textContent = message;
-
-                messageDiv.appendChild(contentContainer);
-                messageDiv.appendChild(avatar);
-            }
-
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        function setLoadingState(state) {
+            isLoading = state;
+            sendButton.disabled = state;
+            chatInput.disabled = state;
+            errorMessage.textContent = '';
         }
-        
-        function showLoadingIndicator() {
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = 'loading-indicator';
-            loadingDiv.className = 'flex items-start gap-3';
-            loadingDiv.innerHTML = `
-                <div class="bg-blue-600 p-2 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold flex-shrink-0">AI</div>
-                <div class="bg-slate-700 rounded-lg p-3 max-w-md">
-                    <div class="flex items-center gap-2 text-slate-400">
-                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-300"></div>
-                        <span>Thinking...</span>
-                    </div>
-                </div>
-            `;
-            chatContainer.appendChild(loadingDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        function addMessage(sender, text) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const messageBubble = document.createElement('div');
+            
+            // Basic Markdown conversion for bold (**text**) and newlines
+            const formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            messageBubble.innerHTML = formattedText;
+            
+            // Enhanced chat bubble styles
+            messageBubble.className = `p-3 rounded-2xl max-w-xs md:max-w-xl text-base shadow-lg transition duration-300 ease-in-out ${
+                sender === 'user' 
+                    ? 'bg-slate-600 rounded-br-sm text-slate-100 hover:bg-slate-500' 
+                    : 'bg-sky-600/90 rounded-tl-sm text-white hover:bg-sky-700'
+            }`;
+
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addLoadingIndicator() {
+            const indicatorWrapper = document.createElement('div');
+            indicatorWrapper.id = 'loading-indicator';
+            indicatorWrapper.className = 'flex justify-start';
+
+            const indicator = document.createElement('div');
+            // Using the new pulse-dot animation class
+            indicator.className = 'bg-sky-600/90 text-white p-3 rounded-2xl rounded-tl-sm max-w-xs md:max-w-lg text-base shadow-lg animate-pulse-dot';
+            indicator.innerHTML = '<div class="flex space-x-1"><span>•</span><span>•</span><span>•</span></div>';
+            
+            indicatorWrapper.appendChild(indicator);
+            chatMessages.appendChild(indicatorWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function removeLoadingIndicator() {
             const indicator = document.getElementById('loading-indicator');
-            if (indicator) indicator.remove();
+            if (indicator) {
+                indicator.remove();
+            }
         }
-        
-        function setLoadingState(loading) {
-            isLoading = loading;
-            chatInput.disabled = loading;
-            sendButton.disabled = loading;
-        }
+
+        // --- Main Function ---
 
         async function getAiResponse(prompt) {
             setLoadingState(true);
-            showLoadingIndicator();
-            errorMessage.textContent = '';
-            
+            addLoadingIndicator();
+
             try {
-                // Call the backend endpoint
-                const response = await fetch(`${BACKEND_URL}/api/chat`, {
+                const response = await fetch(BACKEND_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: prompt }) 
+                    body: JSON.stringify({ message: prompt }),
                 });
 
-                if (!response.ok) {
-                    const contentType = response.headers.get("content-type");
-                    let errorMsg = `Server returned status ${response.status}.`;
-                    
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                        const errorData = await response.json();
-                        errorMsg = errorData.error || errorMsg;
-                    } else {
-                        // This handles the likely 404/500 errors from the Gemini model failure
-                        errorMsg += ' **Backend Error: The Gemini API call failed. Check Render logs for model errors (e.g., 404 NOT FOUND).**';
-                    }
+                removeLoadingIndicator();
 
-                    throw new Error(errorMsg);
+                if (!response.ok) {
+                    const errorDetails = await response.json().catch(() => ({ error: 'Unknown Upstream API error' }));
+                    if (response.status === 502) {
+                         throw new Error(`Upstream API error: ${errorDetails.status}. Check backend logs (the model ID is likely wrong).`);
+                    } else {
+                        throw new Error(`Backend Status ${response.status}: ${errorDetails.error || 'Request failed'}`);
+                    }
                 }
 
-                const result = await response.json();
-                const aiResponse = result.reply; 
+                const data = await response.json();
+                const aiResponse = data.reply;
 
                 if (aiResponse) {
-                    removeLoadingIndicator();
                     addMessage('ai', aiResponse);
                 } else {
                     throw new Error('Received an empty reply from the backend.');
@@ -197,8 +193,16 @@
             }
         }
 
-        // --- Event Listeners ---
+        // --- Event Listeners and UX Enhancements ---
         
+        // Function to auto-resize textarea
+        const autoResize = () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px'; // Limit max height to 200px
+        };
+        
+        chatInput.addEventListener('input', autoResize);
+
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const prompt = chatInput.value.trim();
@@ -206,16 +210,10 @@
                 addMessage('user', prompt);
                 getAiResponse(prompt);
                 chatInput.value = '';
-                chatInput.style.height = 'auto';
+                autoResize(); // Reset textarea size
             }
         });
         
-        chatInput.addEventListener('input', () => {
-            // Auto-resize textarea
-            chatInput.style.height = 'auto';
-            chatInput.style.height = (chatInput.scrollHeight) + 'px';
-        });
-
         chatInput.addEventListener('keydown', (e) => {
             // Send on Enter, but allow newline with Shift+Enter
             if (e.key === 'Enter' && !e.shiftKey) {
