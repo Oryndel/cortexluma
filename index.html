@@ -52,7 +52,7 @@
 
         <div id="chat-messages" class="bg-slate-800/50 backdrop-blur-sm p-6 rounded-xl shadow-inner shadow-slate-900 h-[60vh] overflow-y-auto mb-6 flex flex-col space-y-4">
             <div class="flex justify-start">
-                <div class="bg-sky-600/90 text-white p-3 rounded-2xl rounded-tl-sm max-w-xs md:max-w-xl text-base shadow-lg chat-bubble">
+                <div id="initial-message" class="bg-sky-600/90 text-white p-3 rounded-2xl rounded-tl-sm max-w-xs md:max-w-xl text-base shadow-lg chat-bubble">
                     Hello! I'm CortexLuma, a **Gemini-powered** AI. How can I help you today?
                 </div>
             </div>
@@ -89,10 +89,10 @@
         const chatMessages = document.getElementById('chat-messages');
         const errorMessage = document.getElementById('error-message');
         const sendButton = document.getElementById('send-button');
-        // NOTE: Ensure this URL points to your deployed backend (e.g., on Render)
-        const BACKEND_URL = "https://cortexluma-backend.onrender.com/api/chat"; 
+        const BACKEND_URL = "https://cortexluma-backend.onrender.com/api/chat";
 
         let isLoading = false;
+        const textDecoder = new TextDecoder();
 
         // --- Helper Functions ---
 
@@ -103,25 +103,30 @@
             errorMessage.textContent = '';
         }
 
-        function addMessage(sender, text) {
+        // Creates the message bubble structure, but doesn't fill the text yet
+        function createAiBubble() {
             const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            messageWrapper.className = 'flex justify-start';
 
             const messageBubble = document.createElement('div');
-            
-            // Basic Markdown conversion for bold (**text**) and newlines
-            const formattedText = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
+            messageBubble.className = 'bg-sky-600/90 text-white p-3 rounded-2xl rounded-tl-sm max-w-xs md:max-w-xl text-base shadow-lg transition duration-300 ease-in-out';
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageBubble;
+        }
 
+        // Adds a user message (non-streaming)
+        function addUserMessage(text) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex justify-end';
+
+            const messageBubble = document.createElement('div');
+            // Basic Markdown for bold and newlines
+            const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             messageBubble.innerHTML = formattedText;
             
-            // Enhanced chat bubble styles
-            messageBubble.className = `p-3 rounded-2xl max-w-xs md:max-w-xl text-base shadow-lg transition duration-300 ease-in-out ${
-                sender === 'user' 
-                    ? 'bg-slate-600 rounded-br-sm text-slate-100 hover:bg-slate-500' 
-                    : 'bg-sky-600/90 rounded-tl-sm text-white hover:bg-sky-700'
-            }`;
+            messageBubble.className = 'p-3 rounded-2xl max-w-xs md:max-w-xl text-base shadow-lg bg-slate-600 rounded-br-sm text-slate-100 hover:bg-slate-500';
 
             messageWrapper.appendChild(messageBubble);
             chatMessages.appendChild(messageWrapper);
@@ -132,12 +137,9 @@
             const indicatorWrapper = document.createElement('div');
             indicatorWrapper.id = 'loading-indicator';
             indicatorWrapper.className = 'flex justify-start';
-
             const indicator = document.createElement('div');
-            // Using the new pulse-dot animation class
             indicator.className = 'bg-sky-600/90 text-white p-3 rounded-2xl rounded-tl-sm max-w-xs md:max-w-lg text-base shadow-lg animate-pulse-dot';
             indicator.innerHTML = '<div class="flex space-x-1"><span>•</span><span>•</span><span>•</span></div>';
-            
             indicatorWrapper.appendChild(indicator);
             chatMessages.appendChild(indicatorWrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -149,13 +151,24 @@
                 indicator.remove();
             }
         }
+        
+        // Function to process and display the streaming text
+        function formatStreamedText(text) {
+            // Simple function to apply markdown to the partially generated text
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
 
-        // --- Main Function ---
+        // --- Main Streaming Logic ---
 
-        async function getAiResponse(prompt) {
+        async function getAiResponseStream(prompt) {
             setLoadingState(true);
             addLoadingIndicator();
 
+            let fullResponseText = '';
+            let aiBubble = null;
+            
             try {
                 const response = await fetch(BACKEND_URL, {
                     method: 'POST',
@@ -164,29 +177,46 @@
                 });
 
                 removeLoadingIndicator();
+                
+                if (!response.body) {
+                    throw new Error('Streaming failed: Response body is empty.');
+                }
 
-                if (!response.ok) {
-                    const errorDetails = await response.json().catch(() => ({ error: 'Unknown Upstream API error' }));
-                    if (response.status === 502) {
-                         throw new Error(`Upstream API error: ${errorDetails.status}. Check backend logs (the model ID is likely wrong).`);
-                    } else {
-                        throw new Error(`Backend Status ${response.status}: ${errorDetails.error || 'Request failed'}`);
+                aiBubble = createAiBubble();
+                const reader = response.body.getReader();
+                let { done, value } = await reader.read();
+
+                while (!done) {
+                    const chunk = textDecoder.decode(value, { stream: true });
+                    
+                    // Check for a server-side error marker sent over the stream
+                    if (chunk.startsWith('ERROR:')) {
+                        throw new Error(chunk.substring(6).trim());
                     }
+
+                    fullResponseText += chunk;
+                    
+                    // Update the bubble and scroll for each new chunk
+                    aiBubble.innerHTML = formatStreamedText(fullResponseText);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    ({ done, value } = await reader.read());
                 }
 
-                const data = await response.json();
-                const aiResponse = data.reply;
-
-                if (aiResponse) {
-                    addMessage('ai', aiResponse);
-                } else {
-                    throw new Error('Received an empty reply from the backend.');
-                }
+                // Final decode when the stream is done
+                fullResponseText += textDecoder.decode(value);
+                aiBubble.innerHTML = formatStreamedText(fullResponseText);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
 
             } catch (error) {
-                console.error('Backend Error:', error);
-                removeLoadingIndicator();
-                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
+                console.error('Streaming Error:', error);
+                // If a bubble was created, put the error there, otherwise in the error message area
+                if (aiBubble) {
+                    aiBubble.innerHTML = `<span class="font-bold text-red-300">STREAM ERROR:</span> ${error.message}`;
+                    aiBubble.className = aiBubble.className.replace('bg-sky-600/90', 'bg-red-800');
+                } else {
+                    errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
+                }
             } finally {
                 setLoadingState(false);
                 chatInput.focus();
@@ -195,10 +225,9 @@
 
         // --- Event Listeners and UX Enhancements ---
         
-        // Function to auto-resize textarea
         const autoResize = () => {
             chatInput.style.height = 'auto';
-            chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px'; // Limit max height to 200px
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
         };
         
         chatInput.addEventListener('input', autoResize);
@@ -207,15 +236,14 @@
             e.preventDefault();
             const prompt = chatInput.value.trim();
             if (prompt && !isLoading) {
-                addMessage('user', prompt);
-                getAiResponse(prompt);
+                addUserMessage(prompt); // Changed to addUserMessage
+                getAiResponseStream(prompt); // Changed to streaming function
                 chatInput.value = '';
-                autoResize(); // Reset textarea size
+                autoResize();
             }
         });
         
         chatInput.addEventListener('keydown', (e) => {
-            // Send on Enter, but allow newline with Shift+Enter
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 chatForm.dispatchEvent(new Event('submit'));
