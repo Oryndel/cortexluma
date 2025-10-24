@@ -172,13 +172,16 @@
                 </button>
             </div>
 
-            <!-- Log Out button (visible when logged in) -->
-            <button 
-                id="logout-btn" 
-                class="btn-red hidden w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md"
-            >
-                Logout
-            </button>
+            <!-- Logged In Buttons (visible when logged in) -->
+            <!-- Updated this section to only contain the Go to App button -->
+            <div id="logged-in-actions" class="hidden">
+                 <button 
+                    id="go-to-app-btn" 
+                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md"
+                >
+                    Go to Cortexluma →
+                </button>
+            </div>
         </div>
 
     </div>
@@ -205,9 +208,12 @@
         
         const loginBtn = document.getElementById('login-btn');
         const registerBtn = document.getElementById('register-btn');
-        const logoutBtn = document.getElementById('logout-btn');
         const toggleRegisterBtn = document.getElementById('toggle-register-btn');
         const toggleLoginBtn = document.getElementById('toggle-login-btn');
+        
+        // References for Logged In state
+        const goToAppBtn = document.getElementById('go-to-app-btn');
+        const loggedInActions = document.getElementById('logged-in-actions');
 
         const userStatus = document.getElementById('user-status');
         const messageBox = document.getElementById('message-box');
@@ -216,8 +222,7 @@
         // --- CONFIGURATION ---
         
         // **!!! CRITICAL: CHANGE THIS URL TO YOUR TARGET WEBSITE !!!**
-        // Updated REDIRECT_URL to the user's specific link
-        const REDIRECT_URL = 'https://oryndel.github.io/cortexluma/'; 
+        const REDIRECT_URL = 'https://oryndel.github.io/cortexluma/cortexluma'; 
 
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyBhUXJqjFiygvNx60CA4R8HrfZ2ghV8GCA",
@@ -287,7 +292,6 @@
 
         /** Handles successful auth event: displays message and performs redirect. */
         function handleAuthSuccess(user) {
-            // Updated message to reflect quicker redirect
             showMessage('success', `Welcome ${user.displayName || user.email}! Redirecting now...`);
             
             // Clear inputs
@@ -298,7 +302,7 @@
             ageInput.value = '';
 
             // --- ACTUAL REDIRECTION ---
-            // Reduced delay to 100ms for near-instant redirection
+            // Redirect immediately after successful login/registration
             setTimeout(() => {
                 window.location.href = REDIRECT_URL;
             }, 100); 
@@ -311,9 +315,8 @@
             const isPassword = passwordInput.type === 'password';
             passwordInput.type = isPassword ? 'text' : 'password';
             
-            // Toggle icons visibility and button aria label
-            eyeOn.classList.toggle('hidden', !isPassword); // Hide eye-on if currently password (i.e., we are showing text)
-            eyeOff.classList.toggle('hidden', isPassword); // Show eye-off if currently password (i.e., we are showing text)
+            eyeOn.classList.toggle('hidden', !isPassword); 
+            eyeOff.classList.toggle('hidden', isPassword); 
             passwordToggleBtn.setAttribute('aria-label', isPassword ? 'Hide Password' : 'Show Password');
         });
 
@@ -341,7 +344,6 @@
             }
 
             try {
-                // createUserWithEmailAndPassword signs the user in automatically
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
@@ -358,7 +360,6 @@
                     createdAt: new Date().toISOString()
                 });
                 
-                // Immediately redirect on successful registration
                 handleAuthSuccess(user); 
 
             } catch (error) {
@@ -387,7 +388,6 @@
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // Immediately redirect on successful login
                 handleAuthSuccess(userCredential.user);
             } catch (error) {
                 console.error('Login error:', error.code, error.message);
@@ -401,36 +401,30 @@
             }
         });
 
-        // 5. Logout Handler
-        logoutBtn.addEventListener('click', async () => {
-            if (!auth) return; 
-            try {
-                await signOut(auth);
-                showMessage('success', 'You have been logged out successfully. Redirecting...');
-                // After logout, redirect back to the REDIRECT_URL (e.g., the homepage or login page)
-                setTimeout(() => {
-                    window.location.href = REDIRECT_URL;
-                }, 500);
-            } catch (error) {
-                console.error('Logout error:', error.message);
-                showMessage('error', `Logout Failed: ${error.message}`);
-            }
+        // 5. Go to App Handler (Manual Redirect)
+        goToAppBtn.addEventListener('click', () => {
+            window.location.href = REDIRECT_URL;
         });
+
 
         // 6. Authentication State Listener (Mandatory for UI updates)
         if (auth) {
             onAuthStateChanged(auth, (user) => {
-                // Get the container for login/register buttons
                 const loggedOutButtonsContainer = document.getElementById('logged-out-buttons');
 
                 if (user) {
-                    // *** NEW LOGIC: Redirect instantly if user is already logged in on page load ***
-                    console.log(`User already logged in. Redirecting to: ${REDIRECT_URL}`);
-                    window.location.href = REDIRECT_URL;
-                    return; // Stop processing the UI on this page since we are redirecting
-                    // *************************************************************************
+                    // LOGGED IN: SHOW STATUS AND MANUAL REDIRECT BUTTON (Go to App)
+                    userStatus.textContent = `Logged in as: ${user.displayName || user.email}.`;
+                    userStatus.classList.remove('bg-gray-700', 'text-gray-300');
+                    userStatus.classList.add('bg-green-700', 'text-white'); 
+                    
+                    authForm.classList.add('hidden');
+                    loggedOutButtonsContainer.classList.add('hidden');
+
+                    loggedInActions.classList.remove('hidden'); // Show Logged In button (Go to App)
+
                 } else {
-                    // LOGGED OUT: Show form fields and login/register buttons, hide logout
+                    // LOGGED OUT
                     userStatus.textContent = 'Please log in or register.';
                     userStatus.classList.remove('bg-green-700', 'text-white');
                     userStatus.classList.add('bg-gray-700', 'text-gray-300'); 
@@ -438,10 +432,10 @@
                     authForm.classList.remove('hidden');
                     loggedOutButtonsContainer.classList.remove('hidden');
 
+                    loggedInActions.classList.add('hidden'); // Hide Logged In button
+
                     // Ensure the UI is set to the default (login) view
                     toggleForm(false); 
-                    
-                    logoutBtn.classList.add('hidden');
                 }
             });
         }
