@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI - Multi-Modal Chat 📸</title>
+  <title>CortexLuma AI - Multi-Modal Chat & Image Gen 📸</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -160,13 +160,13 @@
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
       <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.1</span></h1>
-      <p class="text-slate-400 mt-1">Ask questions, or **upload an image** 📸 for multi-modal context.</p>
+      <p class="text-slate-400 mt-1">Chat, **upload an image** 📸, or **use `/image <prompt>`** to generate art.</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
       <div class="flex justify-start">
         <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can analyze images in JPEG, PNG, or WebP format!
+          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can chat, analyze images, and now **create images** using the `/image` command!
         </div>
       </div>
     </div>
@@ -198,7 +198,7 @@
           id="chat-input" 
           class="flex-1 p-3 pr-12 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
           rows="1"
-          placeholder="Ask a question..."
+          placeholder="Ask a question or use /image <prompt>..."
           style="min-height: 44px; max-height: 200px;"
         ></textarea>
         <button 
@@ -225,15 +225,16 @@
         const imageFilename = document.getElementById('image-filename');
         const imagePreviewContainer = document.getElementById('image-preview-container');
 
-        // --- API Endpoint ---
+        // --- API Endpoints ---
+        // NOTE: Make sure the base URL matches where your server.js is deployed!
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        const IMAGE_GEN_URL = "https://cortexluma-backend.onrender.com/api/generate-image"; 
 
         let isLoading = false;
         let chatHistory = []; 
         let uploadedImage = null; // Stores { base64: string, mimeType: string, filename: string }
         const MAX_PROMPT_LENGTH = 1000;
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
-        // --- ADDED: Allowed Mime Types to fix the AVIF error ---
         const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
 
         // --- Core Helper Functions ---
@@ -260,23 +261,20 @@
             chatMessages.innerHTML = `
               <div class="flex justify-start">
                 <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                  Conversation history cleared! 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. Try uploading an image (JPEG, PNG, WebP)!
+                  Conversation history cleared! Use **regular text** for chat, **upload an image** for analysis, or use **\`\/image <prompt>\`** to create art.
                 </div>
               </div>
             `;
             chatInput.focus();
             errorMessage.textContent = '';
-            removeImage(); // Also clear any pending image upload
+            removeImage(); 
         }
         
         function newChat() {
-            // New chat button now just calls clearHistory
             clearHistory();
         }
 
-
-        // --- Image Handling Functions ---
-
+        // --- Image Upload Handling (for Analysis) ---
         function previewImage(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -288,14 +286,12 @@
                 return;
             }
             
-            // --- NEW MIME TYPE VALIDATION CHECK ---
             if (!ALLOWED_MIME_TYPES.includes(file.type)) {
                 errorMessage.textContent = `Error: Unsupported image type (${file.type}). Please use JPEG, PNG, or WebP.`;
                 fileInput.value = '';
                 removeImage();
                 return;
             }
-            // --- END NEW VALIDATION CHECK ---
 
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -323,7 +319,7 @@
             imagePreviewContainer.classList.add('hidden');
             imagePreview.src = '';
             imageFilename.textContent = '';
-            fileInput.value = ''; // Reset the file input element
+            fileInput.value = ''; 
         }
 
         function base64ToGenerativePart(base64, mimeType) {
@@ -356,7 +352,6 @@
              return html;
         }
 
-        // Updated function to handle user messages with or without an image
         function addUserMessageToUI(prompt, image) {
             const messageWrapper = document.createElement('div');
             messageWrapper.className = 'flex justify-end';
@@ -381,7 +376,6 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Function for the model's streaming text response
         function addModelStreamMessage() {
             const messageWrapper = document.createElement('div');
             messageWrapper.className = 'flex justify-start';
@@ -393,16 +387,85 @@
             chatMessages.appendChild(messageWrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Return a function to allow continuous content appending for streaming
             return (chunk) => {
                 messageBubble.innerText += chunk; 
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             };
         }
+        
+        function addGeneratedImageToUI(base64Image, mimeType, prompt) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex justify-start';
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble bg-indigo-600 text-white';
+            
+            messageBubble.innerHTML = `<span class="font-bold">Generated Image:</span> "${prompt}"`;
+
+            const img = document.createElement('img');
+            img.src = `data:${mimeType};base64,${base64Image}`;
+            img.alt = prompt;
+            img.className = 'uploaded-image-preview'; 
+            img.style.maxHeight = '350px'; 
+
+            messageBubble.appendChild(img);
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
 
-        // --- Main Logic Function ---
+        // --- Image Generation Logic (New) ---
 
+        async function generateImage(prompt) {
+            setLoadingState(true);
+            // 1. Add user message to UI
+            addUserMessageToUI(`**Command:** \/image ${prompt}`, null); 
+
+            // 2. Add placeholder message
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex justify-start';
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble bg-indigo-600 text-white';
+            messageBubble.innerText = "Generating image... this may take a moment.";
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch(IMAGE_GEN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate image.');
+                }
+                
+                // Remove the "Generating image..." placeholder
+                messageWrapper.remove();
+                
+                // Add the final generated image
+                addGeneratedImageToUI(data.base64Image, data.mimeType, prompt);
+                
+            } catch (error) {
+                console.error('Image Gen Frontend Error:', error);
+                
+                // Replace the "Generating image..." message with the error
+                messageBubble.innerText = `Image Generation Error: ${error.message}`;
+                messageBubble.className = messageBubble.className.replace('bg-indigo-600', 'bg-red-700');
+                
+            } finally {
+                setLoadingState(false);
+                chatInput.focus();
+            }
+        }
+
+
+        // --- Main Chat Logic (Modified) ---
         async function getStreamResponse(prompt) {
             setLoadingState(true);
             
@@ -463,31 +526,30 @@
 
             } catch (error) {
                 console.error('Frontend Error:', error);
-                // Remove the partial response bubble and the user's message if it was only an image and failed
+                // Error handling cleanup
                 if (chatMessages.lastChild) {
-                    chatMessages.lastChild.remove(); // Remove model error bubble
+                    chatMessages.lastChild.remove(); 
                 }
                 if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
-                    chatHistory.pop(); // Remove the failed user message from history
-                    chatMessages.lastChild.remove(); // Remove user message bubble
+                    chatHistory.pop(); 
+                    chatMessages.lastChild.remove(); 
                 }
 
                 errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
             } finally {
                 setLoadingState(false);
-                removeImage(); // Important: Clear the image after sending it
+                removeImage(); 
                 chatInput.focus();
             }
         }
         
 
-        // --- Event Listeners ---
+        // --- Event Listeners (Modified) ---
         
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const prompt = chatInput.value.trim();
             
-            // Check if user is trying to submit an empty prompt AND no image
             if (!prompt && !uploadedImage) {
                  errorMessage.textContent = "Please enter a message or upload an image.";
                  return;
@@ -498,8 +560,19 @@
             }
             
             if (!isLoading) {
-                // Call the main streaming function
-                getStreamResponse(prompt);
+                // *** NEW LOGIC: Check for image generation command ***
+                if (prompt.toLowerCase().startsWith('/image ')) {
+                    const imagePrompt = prompt.substring(7).trim(); // Remove "/image "
+                    if (imagePrompt) {
+                        generateImage(imagePrompt);
+                    } else {
+                        errorMessage.textContent = "Please provide a description after /image.";
+                        return;
+                    }
+                } else {
+                    // Default to text/multi-modal chat
+                    getStreamResponse(prompt);
+                }
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
