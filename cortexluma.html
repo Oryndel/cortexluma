@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI - MAXED OUT 🚀 with Images</title>
+  <title>CortexLuma AI - Multi-Modal Chat 📸</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,7 +71,15 @@
       transform: translateY(-2px);
     }
 
-
+    /* Image Upload Button */
+    #image-upload-button {
+      transition: all 0.2s ease;
+      background-color: #475569;
+    }
+    #image-upload-button:hover {
+      background-color: #64748b;
+    }
+    
     /* Smooth page entrance */
     .fade-page {
       animation: fadePage 0.5s ease-in-out;
@@ -104,26 +112,15 @@
         padding: 0 !important;
         border-radius: 0 !important;
     }
-    /* NEW: Image Placeholder Style */
-    .image-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      text-align: center;
-      color: #94a3b8;
-      background-color: #1e293b;
-      border: 2px dashed #475569;
-      border-radius: 0.75rem;
-      min-height: 200px;
-    }
-    /* NEW: Generated Image Style */
-    .generated-image {
-      max-width: 100%;
-      height: auto;
-      border-radius: 0.5rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+    
+    /* Uploaded Image preview in chat */
+    .uploaded-image-preview {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+        display: block;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
@@ -146,29 +143,62 @@
       </svg>
       <span>New Chat</span>
     </button>
+    
+    <button 
+      id="clear-history-button"
+      onclick="clearHistory()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path fill-rule="evenodd" d="M3 11a7 7 0 1114 0 7 7 0 01-14 0zm1.75-3.25A1.75 1.75 0 003 9.5v1A1.75 1.75 0 004.75 12h1.5a.75.75 0 000-1.5h-1.5a.25.25 0 01-.25-.25v-1c0-.138.112-.25.25-.25h1.5a.75.75 0 000-1.5h-1.5zm8.5 0a.75.75 0 000 1.5h1.5a.25.25 0 01.25.25v1c0 .138-.112.25-.25.25h-1.5a.75.75 0 000 1.5h1.5A1.75 1.75 0 0017 10.5v-1A1.75 1.75 0 0015.25 8h-1.5z" clip-rule="evenodd" />
+        </svg>
+      <span>Clear History</span>
+    </button>
   </nav>
 
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v2.0</span></h1>
-      <p class="text-slate-400 mt-1">Chat or use <code class="text-yellow-300">/image [prompt]</code> to generate a picture 🖼️</p>
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.0</span></h1>
+      <p class="text-slate-400 mt-1">Ask questions, or **upload an image** 📸 for multi-modal context.</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
       <div class="flex justify-start">
         <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. Try asking me to <code class="bg-indigo-700 text-yellow-300 px-1 py-0.5 rounded text-xs">/image a retrofuturistic city at sunset</code>!
+          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can now analyze images! Click the **camera icon** or just ask me a text question.
         </div>
       </div>
     </div>
 
     <form id="chat-form" class="flex flex-col space-y-2 flex-shrink-0">
+      <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 bg-slate-800 rounded-lg border border-slate-700">
+        <img id="image-preview" class="h-10 w-10 object-cover rounded" alt="Image to upload">
+        <span id="image-filename" class="text-sm text-slate-400 flex-1 truncate"></span>
+        <button type="button" onclick="removeImage()" class="text-red-400 hover:text-red-300 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+        </button>
+      </div>
+      
       <div class="relative flex items-center">
+        <input type="file" id="file-input" accept="image/*" class="hidden" onchange="previewImage(event)">
+
+        <button 
+            type="button" 
+            id="image-upload-button"
+            onclick="document.getElementById('file-input').click()"
+            class="p-2 rounded-full text-white mr-2 transition duration-150"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-3v2z" clip-rule="evenodd" />
+            </svg>
+        </button>
+        
         <textarea 
           id="chat-input" 
           class="flex-1 p-3 pr-12 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
           rows="1"
-          placeholder="Send a message, or type /image [prompt]..."
+          placeholder="Ask a question..."
           style="min-height: 44px; max-height: 200px;"
         ></textarea>
         <button 
@@ -190,21 +220,27 @@
         const chatMessages = document.getElementById('chat-messages');
         const errorMessage = document.getElementById('error-message');
         const sendButton = document.getElementById('send-button');
-        
-        // --- API Endpoints ---
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const imageFilename = document.getElementById('image-filename');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+
+        // --- API Endpoint ---
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
-        const IMAGE_GEN_URL = "https://cortexluma-backend.onrender.com/api/generate-image"; 
 
         let isLoading = false;
         let chatHistory = []; 
+        let uploadedImage = null; // Stores { base64: string, mimeType: string, filename: string }
         const MAX_PROMPT_LENGTH = 1000;
+        const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
 
-        // --- Helper Functions ---
+        // --- Core Helper Functions ---
 
         function setLoadingState(state) {
             isLoading = state;
             sendButton.disabled = state;
             chatInput.disabled = state;
+            fileInput.disabled = state;
             errorMessage.textContent = '';
             // Change button icon to loading spinner if streaming
             sendButton.innerHTML = state 
@@ -212,9 +248,9 @@
                 : '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>';
         }
         
-        function newChat() {
-            if (chatHistory.length > 0) {
-                if (!confirm("Start a new chat? Your current conversation history will be lost.")) {
+        function clearHistory() {
+             if (chatHistory.length > 0) {
+                if (!confirm("Are you sure you want to clear the conversation history?")) {
                     return;
                 }
             }
@@ -222,16 +258,76 @@
             chatMessages.innerHTML = `
               <div class="flex justify-start">
                 <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                  Conversation reset! 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. Try asking me to <code class="bg-indigo-700 text-yellow-300 px-1 py-0.5 rounded text-xs">/image a retrofuturistic city at sunset</code>!
+                  Conversation history cleared! 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. Try uploading an image!
                 </div>
               </div>
             `;
             chatInput.focus();
             errorMessage.textContent = '';
+            removeImage(); // Also clear any pending image upload
+        }
+        
+        function newChat() {
+            // New chat button now just calls clearHistory
+            clearHistory();
         }
 
 
-        // Markdown Rendering (Unchanged)
+        // --- Image Handling Functions ---
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > MAX_FILE_SIZE) {
+                errorMessage.textContent = "Error: File size exceeds 4MB limit.";
+                fileInput.value = '';
+                removeImage();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64String = e.target.result.split(',')[1];
+                const mimeType = file.type;
+
+                uploadedImage = {
+                    base64: base64String,
+                    mimeType: mimeType,
+                    filename: file.name
+                };
+
+                imagePreview.src = e.target.result;
+                imageFilename.textContent = file.name;
+                imagePreviewContainer.classList.remove('hidden');
+                
+                // Clear any lingering error after a successful file selection
+                errorMessage.textContent = '';
+                chatInput.focus();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeImage() {
+            uploadedImage = null;
+            imagePreviewContainer.classList.add('hidden');
+            imagePreview.src = '';
+            imageFilename.textContent = '';
+            fileInput.value = ''; // Reset the file input element
+        }
+
+        function base64ToGenerativePart(base64, mimeType) {
+            return {
+                inlineData: {
+                    data: base64,
+                    mimeType: mimeType
+                }
+            };
+        }
+
+
+        // --- UI Rendering Functions ---
+
         function renderMarkdown(text) {
              let html = text;
              const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -250,21 +346,38 @@
              return html;
         }
 
-        // Refactored to set up the container for the streaming message (Text)
-        function addTextMessage(sender, text, isStreaming = false) {
+        // Updated function to handle user messages with or without an image
+        function addUserMessageToUI(prompt, image) {
             const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            messageWrapper.className = 'flex justify-end';
 
             const messageBubble = document.createElement('div');
-            messageBubble.className = `p-3 rounded-xl max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble ${
-                sender === 'user' 
-                    ? 'bg-slate-600 rounded-br-none text-slate-100' 
-                    : 'bg-indigo-600 rounded-tl-none text-white'
-            }`;
+            messageBubble.className = 'p-3 rounded-xl rounded-br-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble bg-slate-600 text-slate-100';
+            
+            // Add text prompt
+            messageBubble.innerHTML = prompt;
 
-            if (!isStreaming) {
-                messageBubble.innerHTML = renderMarkdown(text);
+            // Add image preview if available
+            if (image) {
+                const img = document.createElement('img');
+                img.src = `data:${image.mimeType};base64,${image.base64}`;
+                img.alt = image.filename;
+                img.className = 'uploaded-image-preview';
+                messageBubble.appendChild(img);
             }
+
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function for the model's streaming text response
+        function addModelStreamMessage() {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex justify-start';
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble bg-indigo-600 text-white';
 
             messageWrapper.appendChild(messageBubble);
             chatMessages.appendChild(messageWrapper);
@@ -277,70 +390,33 @@
             };
         }
 
-        // NEW: Function to add an image to the chat
-        function addImageMessage(prompt, base64Data, mimeType) {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex justify-start w-full`;
 
-            const messageBubble = document.createElement('div');
-            messageBubble.className = 'p-3 bg-slate-800 rounded-xl rounded-tl-none max-w-sm md:max-w-md shadow-md transition duration-300 ease-in-out chat-bubble';
-            messageBubble.innerHTML = `
-                <p class="text-sm italic text-indigo-300 mb-2">Image generated for: "${prompt}"</p>
-                <img 
-                    src="data:${mimeType};base64,${base64Data}" 
-                    alt="AI Generated Image" 
-                    class="generated-image"
-                    onerror="this.src='/error-image.png'; this.alt='Image load failed';"
-                />
-            `;
-
-            messageWrapper.appendChild(messageBubble);
-            chatMessages.appendChild(messageWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // NEW: Function to display a loading placeholder for the image
-        function addImagePlaceholder(prompt) {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex justify-start w-full`;
-
-            const messageBubble = document.createElement('div');
-            messageBubble.className = 'p-3 bg-slate-800 rounded-xl rounded-tl-none max-w-sm md:max-w-md shadow-md transition duration-300 ease-in-out chat-bubble';
-            messageBubble.id = 'image-loading-placeholder';
-            messageBubble.innerHTML = `
-                <div class="image-placeholder">
-                    <svg class="animate-spin h-8 w-8 text-indigo-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <p class="text-sm">Generating image for: "${prompt}"...</p>
-                    <p class="text-xs mt-1 text-slate-500">(This may take a few moments)</p>
-                </div>
-            `;
-
-            messageWrapper.appendChild(messageBubble);
-            chatMessages.appendChild(messageWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            return messageBubble;
-        }
-
-
-        // --- Main Logic Functions ---
+        // --- Main Logic Function ---
 
         async function getStreamResponse(prompt) {
             setLoadingState(true);
             
-            // Add user message to UI and history
-            addTextMessage('user', prompt);
+            // 1. Add user message to UI
+            addUserMessageToUI(prompt, uploadedImage);
+
+            // 2. Prepare payload for the server
+            const imagePart = uploadedImage ? base64ToGenerativePart(uploadedImage.base64, uploadedImage.mimeType) : null;
+            
+            // 3. Add the new user message to history for server processing
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             
-            // Prepare a dedicated message container for the streaming response
-            const responseWriter = addTextMessage('model', '', true);
+            // 4. Prepare a dedicated container for the streaming response
+            const responseWriter = addModelStreamMessage();
             let fullResponseText = '';
 
             try {
                 const response = await fetch(TEXT_STREAM_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: chatHistory }),
+                    body: JSON.stringify({ 
+                        history: chatHistory, 
+                        imagePart: imagePart 
+                    }),
                 });
 
                 if (!response.ok || !response.body) {
@@ -363,7 +439,7 @@
                     }
                 }
                 
-                // FINAL STEP: Re-render the final response with full markdown once streaming is complete
+                // 5. FINAL STEP: Re-render the final response with full markdown
                 const finalBubble = chatMessages.lastChild.querySelector('div:last-child');
                 finalBubble.innerHTML = renderMarkdown(fullResponseText);
                 
@@ -372,7 +448,7 @@
                     hljs.highlightElement(block);
                 });
 
-                // Update history with the complete model response
+                // 6. Update history with the complete model response
                 chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
 
             } catch (error) {
@@ -384,87 +460,31 @@
                 errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
             } finally {
                 setLoadingState(false);
+                removeImage(); // Important: Clear the image after sending it
                 chatInput.focus();
             }
         }
         
-        async function generateImageResponse(prompt) {
-            setLoadingState(true);
-            
-            // 1. Add user prompt to chat
-            addTextMessage('user', `/image ${prompt}`);
-
-            // 2. Add loading placeholder for AI response
-            const placeholder = addImagePlaceholder(prompt);
-            
-            try {
-                const response = await fetch(IMAGE_GEN_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt }),
-                });
-                
-                const data = await response.json();
-
-                // 3. Handle errors from the server (e.g., safety rejection, API key issues)
-                if (!response.ok) {
-                    throw new Error(data.error || 'Image generation failed due to unknown server error.');
-                }
-                
-                // 4. Remove placeholder and display image
-                placeholder.remove();
-                addImageMessage(prompt, data.image.data, data.image.mimeType);
-
-                // Note: Image generations are NOT added to the chatHistory to keep history text-only 
-                // for the language model.
-
-            } catch (error) {
-                console.error('Image Generation Error:', error);
-                // 5. Replace placeholder with an error message
-                placeholder.className = 'flex justify-start w-full';
-                placeholder.innerHTML = `<div class="p-3 bg-red-800/30 text-red-300 rounded-xl rounded-tl-none max-w-sm md:max-w-md shadow-md transition duration-300 ease-in-out chat-bubble">
-                    <p class="font-bold">Image Error:</p>
-                    <p class="text-sm">${error.message}</p>
-                    <p class="text-xs mt-2">Try a different prompt.</p>
-                </div>`;
-                errorMessage.innerHTML = '';
-            } finally {
-                setLoadingState(false);
-                chatInput.focus();
-            }
-        }
-
 
         // --- Event Listeners ---
         
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const fullPrompt = chatInput.value.trim();
+            const prompt = chatInput.value.trim();
             
-            // Client-side Validation
-            if (!fullPrompt) {
-                 errorMessage.textContent = "Please enter a message or /image command.";
+            // Check if user is trying to submit an empty prompt AND no image
+            if (!prompt && !uploadedImage) {
+                 errorMessage.textContent = "Please enter a message or upload an image.";
                  return;
             }
-            if (fullPrompt.length > MAX_PROMPT_LENGTH) {
+            if (prompt.length > MAX_PROMPT_LENGTH) {
                  errorMessage.textContent = `Message is too long. Max ${MAX_PROMPT_LENGTH} characters.`;
                  return;
             }
             
             if (!isLoading) {
-                // Check for /image command
-                if (fullPrompt.toLowerCase().startsWith('/image ')) {
-                    const imagePrompt = fullPrompt.substring(7).trim(); // Remove "/image "
-                    if (imagePrompt.length > 0) {
-                        generateImageResponse(imagePrompt);
-                    } else {
-                        errorMessage.textContent = "Please provide a prompt after /image.";
-                        return;
-                    }
-                } else {
-                    // Default to text streaming
-                    getStreamResponse(fullPrompt);
-                }
+                // Call the main streaming function
+                getStreamResponse(prompt);
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
