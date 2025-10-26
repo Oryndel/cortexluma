@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI - Multi-Modal Chat 📸</title>
+  <title>CortexLuma AI - Real-Time Multi-Modal Chat 📸</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,26 +13,47 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <style>
+    /* BASE VARIABLES (FEATURE 8: Theme Toggle) */
+    :root {
+        --bg-start: #0f172a;
+        --bg-end: #1e293b;
+        --text-color: #e2e8f0;
+        --chat-box-bg: rgba(15, 23, 42, 0.8);
+        --input-bg: #1e293b;
+        --input-border: #334155;
+        --ai-bubble: #4f46e5;
+        --user-bubble: #334155;
+        --code-bg: #1e293b;
+        --sidebar-bg: #0f172a;
+        --shadow-color: rgba(99,102,241,0.15);
+    }
+    
+    /* LIGHT MODE (FEATURE 8: Theme Toggle) */
+    .light-mode {
+        --bg-start: #f8fafc;
+        --bg-end: #e2e8f0;
+        --text-color: #1e293b;
+        --chat-box-bg: rgba(255, 255, 255, 0.95);
+        --input-bg: #ffffff;
+        --input-border: #cbd5e1;
+        --ai-bubble: #4f46e5;
+        --user-bubble: #e2e8f0;
+        --code-bg: #f1f5f9;
+        --sidebar-bg: #ffffff;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      /* Optimized for the full viewport layout */
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
-      color: #e2e8f0;
-      /* Prevent horizontal scroll */
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); 
+      color: var(--text-color);
       overflow-x: hidden; 
+      transition: background-color 0.3s, color 0.3s;
     }
 
     /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #475569;
-      border-radius: 6px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #64748b;
-    }
+    ::-webkit-scrollbar-thumb { background: #475569; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
     /* Fade animation for chat bubbles */
     @keyframes fadeInUp {
@@ -41,93 +62,80 @@
     }
     .chat-bubble { animation: fadeInUp 0.3s ease; }
 
-    /* Input styling */
-    #chat-input {
-      transition: all 0.2s ease;
-    }
-    #chat-input:focus {
-      box-shadow: 0 0 10px rgba(99,102,241,0.5);
-      border-color: #6366f1;
-    }
-
-    /* Send Button hover glow */
-    #send-button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 10px rgba(99,102,241,0.6);
-    }
-    #send-button:active {
-      transform: scale(0.95);
-    }
-
-    /* New Chat Button Glow */
-    #new-chat-button {
-      transition: all 0.3s ease;
-      background: linear-gradient(90deg, #4f46e5, #8b5cf6);
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-    }
-    #new-chat-button:hover {
-      background: linear-gradient(90deg, #6366f1, #a78bfa);
-      box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
-      transform: translateY(-2px);
-    }
-
-    /* Image Upload Button */
-    #image-upload-button {
-      transition: all 0.2s ease;
-      background-color: #475569;
-    }
-    #image-upload-button:hover {
-      background-color: #64748b;
-    }
-    
-    /* Smooth page entrance */
-    .fade-page {
-      animation: fadePage 0.5s ease-in-out;
-    }
-    @keyframes fadePage {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     /* ChatGPT-like container */
     .chat-box {
-      background-color: rgba(15, 23, 42, 0.8);
+      background-color: var(--chat-box-bg);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(99,102,241,0.15);
-      border-radius: 1rem;
+      border: 1px solid var(--shadow-color);
+      transition: background-color 0.3s, border-color 0.3s;
     }
 
-    /* Styling for Highlight.js code blocks */
-    .chat-bubble pre {
-      margin-top: 0;
-      margin-bottom: 0;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto; /* Ensure horizontal scroll for wide code */
-      font-size: 0.875rem; /* text-sm */
+    /* Input styling */
+    #chat-input {
+      background-color: var(--input-bg);
+      border-color: var(--input-border);
+      color: var(--text-color);
     }
-    .chat-bubble code {
-        font-family: monospace;
-        background-color: transparent !important; /* Override inline code style */
-        padding: 0 !important;
-        border-radius: 0 !important;
+    .light-mode #chat-input::placeholder { color: #64748b; }
+
+    /* Sidebar Styling */
+    .sidebar {
+        background-color: var(--sidebar-bg);
+        border-right-color: var(--input-border);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    /* Code Blocks */
+    .code-container pre {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--input-border);
+        transition: background-color 0.3s;
     }
     
-    /* Uploaded Image preview in chat */
-    .uploaded-image-preview {
-        max-width: 100%;
-        max-height: 200px;
-        border-radius: 0.5rem;
-        margin-top: 0.5rem;
-        display: block;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    /* Chat Bubbles */
+    .ai-bubble {
+        background-color: var(--ai-bubble);
+        color: white;
+    }
+    .user-bubble {
+        background-color: var(--user-bubble);
+        color: var(--text-color);
+    }
+
+    /* FEATURE 6: Modal Styles */
+    .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    .modal-content {
+        background-color: var(--input-bg);
+        border: 1px solid var(--input-border);
+        color: var(--text-color);
+    }
+
+    /* FEATURE 9: Typewriter Effect Placeholder */
+    .typewriter-placeholder {
+        overflow: hidden; 
+        white-space: nowrap; 
+        border-right: 3px solid white; 
+        width: 15ch;
+        animation: 
+            typing 1.5s steps(15) infinite,
+            blink-caret 0.75s step-end infinite;
+    }
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 15ch }
+    }
+    @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: white; }
     }
   </style>
 </head>
 
 <body class="fade-page flex min-h-screen">
   
-  <nav class="hidden md:block w-56 bg-slate-900 border-r border-indigo-900/50 p-4 flex-shrink-0">
+  <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0">
     <div class="flex items-center space-x-2 mb-8">
       <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
       <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
@@ -136,7 +144,7 @@
     <button 
       id="new-chat-button"
       onclick="newChat()"
-      class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -145,13 +153,36 @@
     </button>
     
     <button 
-      id="clear-history-button"
-      onclick="clearHistory()"
+      id="settings-button"
+      onclick="openSettingsModal()"
       class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
     >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-            <path fill-rule="evenodd" d="M3 11a7 7 0 1114 0 7 7 0 01-14 0zm1.75-3.25A1.75 1.75 0 003 9.5v1A1.75 1.75 0 004.75 12h1.5a.75.75 0 000-1.5h-1.5a.25.25 0 01-.25-.25v-1c0-.138.112-.25.25-.25h1.5a.75.75 0 000-1.5h-1.5zm8.5 0a.75.75 0 000 1.5h1.5a.25.25 0 01.25.25v1c0 .138-.112.25-.25.25h-1.5a.75.75 0 000 1.5h1.5A1.75 1.75 0 0017 10.5v-1A1.75 1.75 0 0015.25 8h-1.5z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+      <span>Settings</span>
+    </button>
+    
+    <button 
+      id="theme-toggle-button"
+      onclick="toggleTheme()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <span id="theme-icon">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" />
+            </svg>
+        </span>
+      <span id="theme-text">Light Mode</span>
+    </button>
+
+    <button 
+      id="clear-history-button"
+      onclick="clearHistory()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
         </svg>
       <span>Clear History</span>
     </button>
@@ -159,35 +190,32 @@
 
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.2</span></h1>
-      <p class="text-slate-400 mt-1">Chat and **upload an image** 📸. Responses are powered by **real-time Google Search**.</p>
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
+      <p class="text-slate-400 mt-1">Real-time chat, **multi-image** 📸 analysis, and **custom AI personality**. Check the settings panel!</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
-      <div class="flex justify-start">
-        <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze images!
-        </div>
       </div>
-    </div>
 
     <form id="chat-form" class="flex flex-col space-y-2 flex-shrink-0">
-      <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 bg-slate-800 rounded-lg border border-slate-700">
-        <img id="image-preview" class="h-10 w-10 object-cover rounded" alt="Image to upload">
-        <span id="image-filename" class="text-sm text-slate-400 flex-1 truncate"></span>
-        <button type="button" onclick="removeImage()" class="text-red-400 hover:text-red-300 transition">
+      <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 rounded-lg border border-slate-700" style="background-color: var(--input-bg);">
+        <span id="image-count-text" class="text-sm font-semibold text-indigo-400">0 Images</span>
+        <div id="image-previews" class="flex space-x-2 overflow-x-auto p-1">
+            </div>
+        <button type="button" onclick="removeAllImages()" class="text-red-400 hover:text-red-300 transition flex-shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
         </button>
       </div>
       
       <div class="relative flex items-center">
-        <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="previewImage(event)">
+        <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" multiple class="hidden" onchange="previewImages(event)">
 
         <button 
             type="button" 
             id="image-upload-button"
             onclick="document.getElementById('file-input').click()"
             class="p-2 rounded-full text-white mr-2 transition duration-150"
+            style="background-color: #475569;"
         >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-3v2z" clip-rule="evenodd" />
@@ -196,9 +224,9 @@
         
         <textarea 
           id="chat-input" 
-          class="flex-1 p-3 pr-12 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
+          class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
           rows="1"
-          placeholder="Ask a question or upload an image..."
+          placeholder="Ask a question or upload image(s)..."
           style="min-height: 44px; max-height: 200px;"
         ></textarea>
         <button 
@@ -214,6 +242,50 @@
       <div id="error-message" class="text-red-400 text-sm h-4"></div>
     </form>
   </div>
+    
+    <div id="settings-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50">
+        <div class="modal-content w-full max-w-lg p-6 rounded-xl shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b pb-2 border-indigo-400/50">
+                <h3 class="text-xl font-bold text-indigo-400">Model Configuration Settings</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <label for="temperature-slider" class="block text-sm font-medium mb-1">
+                    Creativity (Temperature): <span id="temperature-value" class="font-bold text-indigo-300">0.7</span>
+                </label>
+                <input type="range" id="temperature-slider" min="0" max="1" step="0.1" value="0.7" 
+                       class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer range-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p class="text-xs text-slate-400 mt-1">Lower value is more deterministic/factual (0.0), higher is more creative (1.0).</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="max-tokens-input" class="block text-sm font-medium mb-1">
+                    Maximum Response Length (Tokens):
+                </label>
+                <input type="number" id="max-tokens-input" min="128" max="4096" step="128" value="2048"
+                       class="w-full p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);">
+                <p class="text-xs text-slate-400 mt-1">The maximum number of tokens the model can generate (max 4096).</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="system-instruction-textarea" class="block text-sm font-medium mb-1">
+                    AI Personality / System Instruction:
+                </label>
+                <textarea id="system-instruction-textarea" rows="3"
+                          class="w-full p-2 border rounded-lg resize-none focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);"></textarea>
+                <p class="text-xs text-slate-400 mt-1">Define the AI's role, tone, and constraints.</p>
+            </div>
+
+            <button onclick="saveSettings(); closeSettingsModal()" 
+                    class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition">
+                Save Settings
+            </button>
+        </div>
+    </div>
+    
     <script>
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
@@ -221,21 +293,81 @@
         const errorMessage = document.getElementById('error-message');
         const sendButton = document.getElementById('send-button');
         const fileInput = document.getElementById('file-input');
-        const imagePreview = document.getElementById('image-preview');
-        const imageFilename = document.getElementById('image-filename');
+        const imagePreviews = document.getElementById('image-previews');
+        const imageCountText = document.getElementById('image-count-text');
         const imagePreviewContainer = document.getElementById('image-preview-container');
+        const themeToggleButton = document.getElementById('theme-toggle-button');
+        const settingsModal = document.getElementById('settings-modal');
+        const temperatureSlider = document.getElementById('temperature-slider');
+        const temperatureValueDisplay = document.getElementById('temperature-value');
+        const maxTokensInput = document.getElementById('max-tokens-input');
+        const systemInstructionTextarea = document.getElementById('system-instruction-textarea');
 
-        // --- API Endpoint ---
+
+        // --- CONFIGURATION CONSTANTS ---
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
-
-        let isLoading = false;
-        let chatHistory = []; 
-        let uploadedImage = null; 
-        const MAX_PROMPT_LENGTH = 1000;
+        const MAX_IMAGES = 4; // FEATURE 5
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
+        const MAX_PROMPT_LENGTH = 1000;
         const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
 
-        // --- Core Helper Functions ---
+        // --- STATE VARIABLES ---
+        let isLoading = false;
+        let chatHistory = []; 
+        let uploadedImages = []; // FEATURE 5: Array of { base64: string, mimeType: string, filename: string }
+        let modelSettings = {}; // FEATURE 7: Stored in localStorage
+
+        // --- LOCAL STORAGE & INIT (FEATURE 7) ---
+
+        function saveHistory() {
+            localStorage.setItem('cortexLumaHistory', JSON.stringify(chatHistory));
+        }
+
+        function loadHistory() {
+            const history = localStorage.getItem('cortexLumaHistory');
+            if (history) {
+                chatHistory = JSON.parse(history);
+                renderHistory();
+            } else {
+                 // Initial welcome message if no history found
+                chatMessages.innerHTML = `
+                    <div class="flex justify-start">
+                        <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
+                            Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once!
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // FEATURE 7, 6: Save and Load Settings
+        function saveSettings() {
+            modelSettings = {
+                temperature: parseFloat(temperatureSlider.value),
+                maxOutputTokens: parseInt(maxTokensInput.value),
+                systemInstruction: systemInstructionTextarea.value.trim(),
+            };
+            localStorage.setItem('cortexLumaSettings', JSON.stringify(modelSettings));
+        }
+
+        function loadSettings() {
+            const settings = localStorage.getItem('cortexLumaSettings');
+            const defaultInstruction = "You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Google. You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging.";
+            
+            modelSettings = settings ? JSON.parse(settings) : {
+                temperature: 0.7,
+                maxOutputTokens: 2048,
+                systemInstruction: defaultInstruction,
+            };
+
+            // Apply loaded settings to the modal controls
+            temperatureSlider.value = modelSettings.temperature;
+            temperatureValueDisplay.textContent = modelSettings.temperature;
+            maxTokensInput.value = modelSettings.maxOutputTokens;
+            systemInstructionTextarea.value = modelSettings.systemInstruction || defaultInstruction;
+        }
+
+        // --- CORE UI & STATE FUNCTIONS ---
 
         function setLoadingState(state) {
             isLoading = state;
@@ -251,92 +383,131 @@
         
         function clearHistory() {
              if (chatHistory.length > 0) {
-                if (!confirm("Are you sure you want to clear the conversation history?")) {
+                if (!confirm("Are you sure you want to clear the conversation history? This will also clear local storage.")) {
                     return;
                 }
             }
             chatHistory = [];
+            localStorage.removeItem('cortexLumaHistory'); // FEATURE 7: Clear Local Storage
             chatMessages.innerHTML = `
               <div class="flex justify-start">
-                <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                  Conversation history cleared! I'm ready for new questions or image analysis.
+                <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
+                  Conversation history cleared! I'm ready for new questions or multi-image analysis.
                 </div>
               </div>
             `;
             chatInput.focus();
             errorMessage.textContent = '';
-            removeImage(); 
+            removeAllImages(); 
         }
         
         function newChat() {
             clearHistory();
         }
 
-        // --- FEATURE ADDED: Code Copy Function ---
-        function copyCode(button) {
-            // Find the code block within the same code-container
-            const codeBlock = button.closest('.code-container').querySelector('code');
-            const code = codeBlock.innerText;
-            
-            // Use the modern clipboard API
-            navigator.clipboard.writeText(code).then(() => {
-                const originalText = button.innerHTML;
-                button.innerHTML = 'Copied!';
-                setTimeout(() => {
-                    button.innerHTML = originalText; // Reset to "Copy"
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                button.innerHTML = 'Error';
-            });
+        // --- FEATURE 8: Theme Toggle ---
+        function toggleTheme() {
+            const isDarkMode = document.body.classList.contains('light-mode');
+            if (isDarkMode) {
+                document.body.classList.remove('light-mode');
+                localStorage.setItem('cortexLumaTheme', 'dark');
+                document.getElementById('theme-icon').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg>';
+                document.getElementById('theme-text').textContent = 'Light Mode';
+                document.querySelector('link[href*="atom-one-dark"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+            } else {
+                document.body.classList.add('light-mode');
+                localStorage.setItem('cortexLumaTheme', 'light');
+                document.getElementById('theme-icon').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 00-.707-.293h-4a1 1 0 000 2h4a1 1 0 00.707-.293l.707-.707a1 1 0 00-1.414-1.414zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zM7 16a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-3.293-4.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707z" clip-rule="evenodd" /></svg>';
+                document.getElementById('theme-text').textContent = 'Dark Mode';
+                document.querySelector('link[href*="atom-one-dark"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
+            }
         }
 
+        // --- FEATURE 6: Settings Modal Functions ---
+        function openSettingsModal() {
+            loadSettings(); // Ensure the latest saved settings are loaded into the controls
+            settingsModal.style.display = 'flex';
+        }
 
-        // --- Image Upload Handling (for Analysis) ---
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > MAX_FILE_SIZE) {
-                errorMessage.textContent = "Error: File size exceeds 4MB limit.";
-                fileInput.value = '';
-                removeImage();
-                return;
-            }
-            
-            if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-                errorMessage.textContent = `Error: Unsupported image type (${file.type}). Please use JPEG, PNG, or WebP.`;
-                fileInput.value = '';
-                removeImage();
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64String = e.target.result.split(',')[1];
-                const mimeType = file.type;
-
-                uploadedImage = {
-                    base64: base64String,
-                    mimeType: mimeType,
-                    filename: file.name
-                };
-
-                imagePreview.src = e.target.result;
-                imageFilename.textContent = file.name;
-                imagePreviewContainer.classList.remove('hidden');
-                
-                errorMessage.textContent = '';
-                chatInput.focus();
-            };
-            reader.readAsDataURL(file);
+        function closeSettingsModal() {
+            settingsModal.style.display = 'none';
         }
         
-        function removeImage() {
-            uploadedImage = null;
+        temperatureSlider.addEventListener('input', (e) => {
+            temperatureValueDisplay.textContent = e.target.value;
+        });
+        
+        // --- FEATURE 5: Multi-Image Handling ---
+
+        function previewImages(event) {
+            const files = Array.from(event.target.files);
+            
+            // Clear current images if new files are selected
+            uploadedImages = [];
+            imagePreviews.innerHTML = '';
+
+            if (files.length === 0) {
+                removeAllImages();
+                return;
+            }
+
+            if (files.length > MAX_IMAGES) {
+                errorMessage.textContent = `Error: Maximum ${MAX_IMAGES} images allowed.`;
+                fileInput.value = '';
+                removeAllImages();
+                return;
+            }
+
+            let validImagesCount = 0;
+
+            files.slice(0, MAX_IMAGES).forEach(file => {
+                if (file.size > MAX_FILE_SIZE) {
+                    errorMessage.textContent = `Error: Image '${file.name}' exceeds 4MB limit and was skipped.`;
+                    return;
+                }
+                
+                if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+                    errorMessage.textContent = `Error: Image '${file.name}' has unsupported type (${file.type}) and was skipped.`;
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64String = e.target.result.split(',')[1];
+                    const mimeType = file.type;
+
+                    const imageObject = {
+                        base64: base64String,
+                        mimeType: mimeType,
+                        filename: file.name
+                    };
+                    
+                    uploadedImages.push(imageObject);
+                    validImagesCount++;
+
+                    // Render preview thumbnail
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = file.name;
+                    img.className = 'h-10 w-10 object-cover rounded shadow-md';
+                    imagePreviews.appendChild(img);
+
+                    // Update count when rendering is complete
+                    imageCountText.textContent = `${validImagesCount} Images`;
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            imagePreviewContainer.classList.remove('hidden');
+            errorMessage.textContent = '';
+            chatInput.focus();
+        }
+        
+        function removeAllImages() {
+            uploadedImages = [];
             imagePreviewContainer.classList.add('hidden');
-            imagePreview.src = '';
-            imageFilename.textContent = '';
+            imagePreviews.innerHTML = '';
+            imageCountText.textContent = '0 Images';
             fileInput.value = ''; 
         }
 
@@ -352,6 +523,30 @@
 
         // --- UI Rendering Functions ---
 
+        // Render existing history from local storage
+        function renderHistory() {
+            chatMessages.innerHTML = '';
+            chatHistory.forEach(message => {
+                const isUser = message.role === 'user';
+                
+                // Get the text part (the last part is usually the text)
+                const textPart = message.parts.find(p => p.text) || { text: '' };
+                
+                // Get the image parts (if any)
+                const imageParts = message.parts.filter(p => p.inlineData);
+                
+                addUserMessageToUI(textPart.text, imageParts, isUser);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+
+        // FEATURE 10 (Part of Response Timing/Token Count): Token Estimator
+        // Very rough estimate based on 4 chars/token heuristic
+        function estimateTokens(text) {
+            return Math.ceil(text.length / 4);
+        }
+
         // FEATURE MODIFIED: Code blocks now include a copy button
         function renderMarkdown(text) {
              let html = text;
@@ -363,7 +558,7 @@
                  // Use a container for relative positioning of the copy button
                  return `
                     <div class="code-container relative mt-3 mb-3">
-                        <div class="absolute top-0 right-0 p-2 text-xs text-slate-400 bg-slate-800 rounded-tr-lg rounded-bl-lg z-10">
+                        <div class="absolute top-0 right-0 p-2 text-xs text-slate-400 rounded-tr-lg rounded-bl-lg z-10" style="background-color: var(--input-bg);">
                             ${language}
                         </div>
                         <button 
@@ -379,31 +574,58 @@
 
              html = html
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/`(.*?)`/g, '<code class="bg-slate-700 text-yellow-300 px-1 py-0.5 rounded text-xs">$1</code>')
+                .replace(/`(.*?)`/g, '<code class="px-1 py-0.5 rounded text-xs" style="background-color: var(--user-bubble); color: #facc15;">$1</code>')
                 .replace(/\n/g, '<br>'); 
 
              html = html.replace(/<br>\s*(-|\*)\s/g, '<br><span class="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-2 flex-shrink-0 align-middle"></span>');
 
              return html;
         }
+        
+        // Code Copy Function
+        window.copyCode = function(button) {
+            const codeBlock = button.closest('.code-container').querySelector('code');
+            const code = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 13.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Copied!';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                button.innerHTML = 'Error';
+            });
+        }
 
-        function addUserMessageToUI(prompt, image) {
+
+        // Renders User Message (and can be used to render history messages)
+        function addUserMessageToUI(prompt, imageArray, isHistory = false) {
             const messageWrapper = document.createElement('div');
-            messageWrapper.className = 'flex justify-end';
+            messageWrapper.className = `flex justify-${isHistory ? 'start' : 'end'}`;
 
             const messageBubble = document.createElement('div');
-            messageBubble.className = 'p-3 rounded-xl rounded-br-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble bg-slate-600 text-slate-100';
+            messageBubble.className = `p-3 rounded-xl rounded-${isHistory ? 'tl' : 'br'}-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble ${isHistory ? 'ai-bubble' : 'user-bubble'}`;
             
             // Add text prompt
-            messageBubble.innerHTML = prompt || (image ? 'Analyzing uploaded image...' : '');
+            messageBubble.innerHTML = prompt || (imageArray.length > 0 ? 'Analyzing uploaded image(s)...' : '');
 
-            // Add image preview if available
-            if (image) {
-                const img = document.createElement('img');
-                img.src = `data:${image.mimeType};base64,${image.base64}`;
-                img.alt = image.filename;
-                img.className = 'uploaded-image-preview';
-                messageBubble.appendChild(img);
+            // Add image previews if available
+            if (imageArray && imageArray.length > 0) {
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'flex space-x-2 mt-2 flex-wrap';
+                
+                imageArray.forEach(image => {
+                    const base64 = image.inlineData.data;
+                    const mimeType = image.inlineData.mimeType;
+                    const img = document.createElement('img');
+                    img.src = `data:${mimeType};base64,${base64}`;
+                    img.className = 'uploaded-image-preview w-20 h-20 object-cover';
+                    previewContainer.appendChild(img);
+                });
+                
+                messageBubble.appendChild(previewContainer);
             }
 
             messageWrapper.appendChild(messageBubble);
@@ -411,36 +633,69 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        // Creates the streaming AI message container
         function addModelStreamMessage() {
+            const startTime = Date.now(); // FEATURE 10: Start timer
+            
             const messageWrapper = document.createElement('div');
             messageWrapper.className = 'flex justify-start';
 
             const messageBubble = document.createElement('div');
-            messageBubble.className = 'p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble bg-indigo-600 text-white';
+            messageBubble.className = 'ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble';
+            
+            // FEATURE 9: Typewriter loading effect
+            messageBubble.innerHTML = `<div class="typewriter-placeholder">Thinking...</div>`;
 
             messageWrapper.appendChild(messageBubble);
             chatMessages.appendChild(messageWrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            return (chunk) => {
-                messageBubble.innerText += chunk; 
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+            let fullResponseText = '';
+
+            return (chunk, isDone) => {
+                const placeholder = messageBubble.querySelector('.typewriter-placeholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+
+                // If chunk is not empty, append text and update scroll
+                if (chunk) {
+                    fullResponseText += chunk;
+                    messageBubble.innerText = fullResponseText; 
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                // FEATURE 10: Final timing/token display on completion
+                if (isDone) {
+                    const endTime = Date.now();
+                    const durationMs = endTime - startTime;
+                    const durationSeconds = (durationMs / 1000).toFixed(2);
+                    const tokenCount = estimateTokens(fullResponseText);
+                    
+                    const footer = document.createElement('div');
+                    footer.className = 'text-xs text-indigo-200 mt-2 pt-2 border-t border-indigo-400/50';
+                    footer.innerHTML = `Time: ${durationSeconds}s | Est. Tokens: ${tokenCount}`;
+                    messageBubble.appendChild(footer);
+                }
             };
         }
+
 
         // --- Main Chat Logic ---
         async function getStreamResponse(prompt) {
             setLoadingState(true);
             
             // 1. Add user message to UI
-            addUserMessageToUI(prompt, uploadedImage);
+            const userImageParts = uploadedImages.map(img => base64ToGenerativePart(img.base64, img.mimeType)); // FEATURE 5
+            addUserMessageToUI(prompt, userImageParts, false);
 
             // 2. Prepare payload for the server
-            const imagePart = uploadedImage ? base64ToGenerativePart(uploadedImage.base64, uploadedImage.mimeType) : null;
+            // Convert uploadedImages array to the structure the server expects (imageParts)
+            const imagePartsForServer = uploadedImages.map(img => base64ToGenerativePart(img.base64, img.mimeType));
             
             // 3. Add the new user message to history for server processing
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            
+            chatHistory.push({ role: "user", parts: [{ text: prompt }, ...userImageParts] }); // FEATURE 5
+
             // 4. Prepare a dedicated container for the streaming response
             const responseWriter = addModelStreamMessage();
             let fullResponseText = '';
@@ -451,7 +706,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         history: chatHistory, 
-                        imagePart: imagePart 
+                        imageParts: imagePartsForServer, // FEATURE 5
+                        // FEATURE 1, 2, 3: Send model settings
+                        temperature: modelSettings.temperature,
+                        maxOutputTokens: modelSettings.maxOutputTokens,
+                        systemInstruction: modelSettings.systemInstruction,
                     }),
                 });
 
@@ -470,15 +729,20 @@
                     const chunk = decoder.decode(value, { stream: !done });
                     
                     if (chunk) {
-                        responseWriter(chunk);
+                        responseWriter(chunk, false); // Stream in chunks
                         fullResponseText += chunk;
                     }
                 }
                 
+                responseWriter(null, true); // Final call to update timing/tokens
+
                 // 5. FINAL STEP: Re-render the final response with full markdown
-                const finalBubble = chatMessages.lastChild.querySelector('div:last-child');
+                const finalBubble = chatMessages.lastChild.querySelector('div:nth-child(2)'); // Target the bubble div
+                const finalFooter = finalBubble.querySelector('.text-xs');
+
                 finalBubble.innerHTML = renderMarkdown(fullResponseText);
-                
+                if(finalFooter) finalBubble.appendChild(finalFooter); // Re-append the footer
+
                 // Apply Syntax Highlighting
                 finalBubble.querySelectorAll('.code-container pre code').forEach((block) => {
                     hljs.highlightElement(block);
@@ -486,22 +750,24 @@
 
                 // 6. Update history with the complete model response
                 chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
+                saveHistory(); // FEATURE 7: Save history
 
             } catch (error) {
                 console.error('Frontend Error:', error);
-                // Error handling cleanup
+                
+                // Remove the last user message and the streaming placeholder
                 if (chatMessages.lastChild) {
                     chatMessages.lastChild.remove(); 
                 }
                 if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
                     chatHistory.pop(); 
-                    chatMessages.lastChild.remove(); 
+                    if(chatMessages.lastChild) chatMessages.lastChild.remove(); // Remove user message
                 }
-
-                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
+                
+                errorMessage.innerHTML = `<span class="font-bold">API Error:</span> ${error.message}`;
             } finally {
                 setLoadingState(false);
-                removeImage(); 
+                removeAllImages(); 
                 chatInput.focus();
             }
         }
@@ -513,8 +779,8 @@
             e.preventDefault();
             const prompt = chatInput.value.trim();
             
-            if (!prompt && !uploadedImage) {
-                 errorMessage.textContent = "Please enter a message or upload an image.";
+            if (!prompt && uploadedImages.length === 0) {
+                 errorMessage.textContent = "Please enter a message or upload image(s).";
                  return;
             }
             if (prompt.length > MAX_PROMPT_LENGTH) {
@@ -551,6 +817,14 @@
 
         // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
+            // FEATURE 8: Load Theme
+            const savedTheme = localStorage.getItem('cortexLumaTheme');
+            if (savedTheme === 'light') {
+                toggleTheme(); // Call once to set to light mode if saved
+            }
+
+            loadSettings(); // FEATURE 7: Load model settings
+            loadHistory();  // FEATURE 7: Load chat history
             chatInput.focus();
         });
 
