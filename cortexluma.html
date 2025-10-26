@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI</title>
+  <title>CortexLuma AI - Enhanced</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,11 +11,8 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      /* Adjusted to cover the full viewport for the sidebar layout */
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
       color: #e2e8f0;
     }
 
@@ -66,7 +63,7 @@
       border-color: #6366f1;
     }
 
-    /* Button hover glow */
+    /* Send Button hover glow */
     #send-button:hover {
       transform: scale(1.05);
       box-shadow: 0 0 10px rgba(99,102,241,0.6);
@@ -74,6 +71,17 @@
     #send-button:active {
       transform: scale(0.95);
     }
+
+    /* New Chat Button Glow (Max CSS) */
+    #new-chat-button {
+      transition: all 0.3s ease;
+    }
+    #new-chat-button:hover {
+      background-color: #4f46e5;
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.8);
+      transform: translateY(-2px);
+    }
+
 
     /* Smooth page entrance */
     .fade-page {
@@ -94,24 +102,41 @@
   </style>
 </head>
 
-<body class="fade-page">
-  <div class="max-w-2xl w-full mx-auto p-4">
-    <header class="text-center mb-4">
+<body class="fade-page flex min-h-screen">
+  
+  <nav class="hidden md:block w-56 bg-slate-900 border-r border-indigo-900/50 p-4 flex-shrink-0">
+    <div class="flex items-center space-x-2 mb-8">
+      <div class="h-6 w-6 bg-indigo-500 rounded-full"></div>
+      <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
+    </div>
+
+    <button 
+      id="new-chat-button"
+      onclick="newChat()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-indigo-600 rounded-lg text-white font-semibold transition duration-300"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+      <span>New Chat</span>
+    </button>
+  </nav>
+
+  <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
+    <header class="text-center mb-4 flex-shrink-0">
       <h1 class="text-3xl font-bold text-indigo-400 animate-pulse">CortexLuma AI</h1>
       <p class="text-slate-400 mt-1">Your Smart ChatGPT Jr Assistant 🤖</p>
     </header>
 
-    <!-- Chat container -->
-    <div id="chat-messages" class="chat-box p-4 h-[70vh] overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
+    <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
       <div class="flex justify-start">
-        <div class="bg-slate-700 p-3 rounded-xl max-w-xs md:max-w-lg text-sm shadow chat-bubble">
-          Hey there 👋 I’m <span class="text-indigo-400 font-semibold">CortexLuma</span> — your AI buddy. How can I help?
+        <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
+          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span> — your AI buddy. How can I help?
         </div>
       </div>
     </div>
 
-    <!-- Input -->
-    <form id="chat-form" class="flex flex-col space-y-2">
+    <form id="chat-form" class="flex flex-col space-y-2 flex-shrink-0">
       <div class="relative flex items-center">
         <textarea 
           id="chat-input" 
@@ -126,8 +151,7 @@
           class="absolute right-3 bottom-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M3.105 2.548A2.25 2.25 0 0 0 .5 4.675v9.5c0 1.054.912 1.908 1.996 1.908h.084l.875 1.167a.75.75 0 0 0 1.173.044l.897-.978 10.63-7.589c.866-.62.866-1.927 0-2.547L6.53 1.359a.75.75 0 0 0-1.173.044l-.897.978-.084.108Z" />
-            <path d="M10.873 9.75V7.5a.75.75 0 0 0-1.5 0v2.25H6.75a.75.75 0 0 0 0 1.5h2.623v2.25a.75.75 0 0 0 1.5 0v-2.25h2.623a.75.75 0 0 0 0-1.5h-2.623Z" />
+            <path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" />
           </svg>
         </button>
       </div>
@@ -140,9 +164,14 @@
         const chatMessages = document.getElementById('chat-messages');
         const errorMessage = document.getElementById('error-message');
         const sendButton = document.getElementById('send-button');
-        const BACKEND_URL = "https://cortexluma-backend.onrender.com/api/chat"; // Your deployed backend URL
+        
+        // IMPORTANT: The backend URL must be updated to support a STREAMING endpoint.
+        // We will assume the backend now has a streaming route at '/api/stream-chat'
+        const BACKEND_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
 
         let isLoading = false;
+        // FEATURE: Multi-Turn Chat History - stores all user/model exchanges
+        let chatHistory = []; 
 
         // --- Helper Functions ---
 
@@ -151,42 +180,66 @@
             sendButton.disabled = state;
             chatInput.disabled = state;
             errorMessage.textContent = '';
+            // Change button icon to loading spinner if streaming
+            sendButton.innerHTML = state 
+                ? '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>'
+                : '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>';
+        }
+        
+        // FEATURE: New Chat
+        function newChat() {
+            chatHistory = [];
+            chatMessages.innerHTML = `
+              <div class="flex justify-start">
+                <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
+                  Conversation reset! 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span> — your AI buddy. How can I help?
+                </div>
+              </div>
+            `;
+            chatInput.focus();
+            errorMessage.textContent = '';
         }
 
-        function addMessage(sender, text) {
+
+        // FEATURE: Improved Markdown Rendering (Basic)
+        function renderMarkdown(text) {
+             let html = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/`(.*?)`/g, '<code class="bg-slate-700 text-yellow-300 px-1 py-0.5 rounded text-xs">$1</code>') // Inline code
+                .replace(/\n/g, '<br>'); // Newlines
+
+             // Simple list item detection for better bullet points
+             html = html.replace(/<br>\s*(-|\*)\s/g, '<br><span class="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-2 flex-shrink-0 align-middle"></span>');
+
+             return html;
+        }
+
+        // Refactored to set up the container for the streaming message
+        function addMessage(sender, text, isStreaming = false) {
             const messageWrapper = document.createElement('div');
             messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
             const messageBubble = document.createElement('div');
-            // Basic Markdown conversion for simplicity (e.g., **bold**)
-            const formattedText = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-                .replace(/\n/g, '<br>'); // Newlines
-
-            messageBubble.innerHTML = formattedText;
-            messageBubble.className = `p-3 rounded-xl max-w-xs md:max-w-lg text-sm shadow-md transition duration-300 ease-in-out ${
+            messageBubble.className = `p-3 rounded-xl max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble ${
                 sender === 'user' 
                     ? 'bg-slate-600 rounded-br-none text-slate-100' 
                     : 'bg-indigo-600 rounded-tl-none text-white'
             }`;
 
+            // If it's a non-streaming user message, render and append immediately
+            if (!isStreaming) {
+                messageBubble.innerHTML = renderMarkdown(text);
+            }
+
             messageWrapper.appendChild(messageBubble);
             chatMessages.appendChild(messageWrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
 
-        function addLoadingIndicator() {
-            const indicatorWrapper = document.createElement('div');
-            indicatorWrapper.id = 'loading-indicator';
-            indicatorWrapper.className = 'flex justify-start';
-
-            const indicator = document.createElement('div');
-            indicator.className = 'bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-lg text-sm shadow-md';
-            indicator.innerHTML = '<div class="flex space-x-1"><span class="animate-pulse">.</span><span class="animate-pulse delay-75">.</span><span class="animate-pulse delay-150">.</span></div>';
-            
-            indicatorWrapper.appendChild(indicator);
-            chatMessages.appendChild(indicatorWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Return a function to allow continuous content appending for streaming
+            return (chunk) => {
+                messageBubble.innerHTML += chunk;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
         }
 
         function removeLoadingIndicator() {
@@ -195,47 +248,72 @@
                 indicator.remove();
             }
         }
+        
+        function addLoadingIndicator() {
+             // We no longer need a separate "..." indicator, 
+             // as the streaming response starts writing immediately.
+             // This function is now a placeholder.
+        }
 
-        // --- Main Function ---
+        // --- Main Function (FASTEST: Streaming Implementation) ---
 
         async function getAiResponse(prompt) {
             setLoadingState(true);
-            addLoadingIndicator();
+            
+            // Add user message to UI and history
+            addMessage('user', prompt);
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            
+            // Prepare a dedicated message container for the streaming response
+            const responseWriter = addMessage('model', '', true);
+            let fullResponseText = '';
 
             try {
+                // IMPORTANT: Send the full history for multi-turn context
                 const response = await fetch(BACKEND_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: prompt }),
+                    body: JSON.stringify({ history: chatHistory }),
                 });
 
-                removeLoadingIndicator();
-
-                if (!response.ok) {
+                if (!response.ok || !response.body) {
                     const errorDetails = await response.json().catch(() => ({ error: 'Unknown Upstream API error' }));
-                    // If the backend returns 502 (Upstream API error), show the details it provided
-                    if (response.status === 502) {
-                         // IMPORTANT: This is where the 404 from Gemini API is captured
-                         // The text in the image confirms this happens when the backend gets the 404
-                        throw new Error(`Upstream API error (Status ${errorDetails.status}). Check your backend logs for the Gemini API model ID issue.`);
-                    } else {
-                        throw new Error(`Backend Status ${response.status}: ${errorDetails.error || 'Request failed'}`);
+                    throw new Error(`API Status ${response.status}: ${errorDetails.error || 'Request failed'}`);
+                }
+
+                // Use reader for streaming
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                let done = false;
+                while (!done) {
+                    const { value, done: doneReading } = await reader.read();
+                    done = doneReading;
+                    const chunk = decoder.decode(value, { stream: !done });
+                    
+                    // The backend must send Server-Sent Events (SSE) or a similar format.
+                    // Assuming a simple text stream for chunking in the frontend.
+                    if (chunk) {
+                        responseWriter(chunk);
+                        fullResponseText += chunk;
                     }
                 }
+                
+                // FINAL STEP: Re-render the final response with full markdown once streaming is complete
+                const finalBubble = chatMessages.lastChild.querySelector('div:last-child');
+                finalBubble.innerHTML = renderMarkdown(fullResponseText);
 
-                const data = await response.json();
-                const aiResponse = data.reply;
 
-                if (aiResponse) {
-                    addMessage('ai', aiResponse);
-                } else {
-                    throw new Error('Received an empty reply from the backend.');
-                }
+                // FEATURE: Update history with the complete model response
+                chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
 
             } catch (error) {
-                console.error('Backend Error:', error);
-                removeLoadingIndicator();
-                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
+                console.error('Frontend Error:', error);
+                // Remove the empty message bubble container if an error occurred
+                if (chatMessages.lastChild) {
+                    chatMessages.lastChild.remove();
+                }
+                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}. <br> Please ensure your backend is running and supports the **streaming** feature.`;
             } finally {
                 setLoadingState(false);
                 chatInput.focus();
@@ -248,7 +326,7 @@
             e.preventDefault();
             const prompt = chatInput.value.trim();
             if (prompt && !isLoading) {
-                addMessage('user', prompt);
+                // Note: addMessage for user is now handled inside getAiResponse to manage history sync
                 getAiResponse(prompt);
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
@@ -267,6 +345,11 @@
                 e.preventDefault();
                 chatForm.dispatchEvent(new Event('submit'));
             }
+        });
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            chatInput.focus();
         });
 
     </script>
