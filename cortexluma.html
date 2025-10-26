@@ -99,8 +99,8 @@
 
     /* Styling for Highlight.js code blocks */
     .chat-bubble pre {
-      margin-top: 0.75rem;
-      margin-bottom: 0.75rem;
+      margin-top: 0;
+      margin-bottom: 0;
       padding: 1rem;
       border-radius: 0.5rem;
       overflow-x: auto; /* Ensure horizontal scroll for wide code */
@@ -159,14 +159,14 @@
 
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.1</span></h1>
-      <p class="text-slate-400 mt-1">Chat, **upload an image** 📸, but **image generation is a paid feature**.</p>
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.2</span></h1>
+      <p class="text-slate-400 mt-1">Chat and **upload an image** 📸. Responses are powered by **real-time Google Search**.</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
       <div class="flex justify-start">
         <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can analyze images in JPEG, PNG, or WebP format! Image generation is not available on the free tier.
+          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze images!
         </div>
       </div>
     </div>
@@ -198,7 +198,7 @@
           id="chat-input" 
           class="flex-1 p-3 pr-12 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
           rows="1"
-          placeholder="Ask a question or use /image <prompt> (Paid Feature)..."
+          placeholder="Ask a question or upload an image..."
           style="min-height: 44px; max-height: 200px;"
         ></textarea>
         <button 
@@ -226,12 +226,11 @@
         const imagePreviewContainer = document.getElementById('image-preview-container');
 
         // --- API Endpoint ---
-        // NOTE: Make sure the base URL matches where your server.js is deployed!
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
 
         let isLoading = false;
         let chatHistory = []; 
-        let uploadedImage = null; // Stores { base64: string, mimeType: string, filename: string }
+        let uploadedImage = null; 
         const MAX_PROMPT_LENGTH = 1000;
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
         const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
@@ -260,7 +259,7 @@
             chatMessages.innerHTML = `
               <div class="flex justify-start">
                 <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                  Conversation history cleared! Use **regular text** for chat, **upload an image** for analysis, or use **\`\/image <prompt>\`** to try the paid image creation feature.
+                  Conversation history cleared! I'm ready for new questions or image analysis.
                 </div>
               </div>
             `;
@@ -272,6 +271,26 @@
         function newChat() {
             clearHistory();
         }
+
+        // --- FEATURE ADDED: Code Copy Function ---
+        function copyCode(button) {
+            // Find the code block within the same code-container
+            const codeBlock = button.closest('.code-container').querySelector('code');
+            const code = codeBlock.innerText;
+            
+            // Use the modern clipboard API
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = 'Copied!';
+                setTimeout(() => {
+                    button.innerHTML = originalText; // Reset to "Copy"
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                button.innerHTML = 'Error';
+            });
+        }
+
 
         // --- Image Upload Handling (for Analysis) ---
         function previewImage(event) {
@@ -333,12 +352,29 @@
 
         // --- UI Rendering Functions ---
 
+        // FEATURE MODIFIED: Code blocks now include a copy button
         function renderMarkdown(text) {
              let html = text;
              const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
              html = html.replace(codeBlockRegex, (match, lang, code) => {
-                 const languageClass = lang ? `language-${lang.trim()}` : 'language-plaintext';
-                 return `<pre><code class="${languageClass}">${code.trim()}</code></pre>`;
+                 const language = lang ? lang.trim() : 'plaintext';
+                 const languageClass = `language-${language}`;
+                 
+                 // Use a container for relative positioning of the copy button
+                 return `
+                    <div class="code-container relative mt-3 mb-3">
+                        <div class="absolute top-0 right-0 p-2 text-xs text-slate-400 bg-slate-800 rounded-tr-lg rounded-bl-lg z-10">
+                            ${language}
+                        </div>
+                        <button 
+                            class="copy-button absolute top-0 right-0 mt-8 mr-2 px-2 py-1 text-xs text-white bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 z-20"
+                            onclick="copyCode(this)"
+                        >
+                            Copy
+                        </button>
+                        <pre><code class="${languageClass}">${code.trim()}</code></pre>
+                    </div>
+                 `;
              });
 
              html = html
@@ -390,37 +426,6 @@
                 messageBubble.innerText += chunk; 
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             };
-        }
-
-
-        // --- REPLACEMENT IMAGE GENERATION LOGIC (Free Version) ---
-        // This function informs the user about the billing requirement instead of calling a paid API.
-
-        async function generateImage(prompt) {
-            // 1. Add user message to UI
-            addUserMessageToUI(`**Command:** \/image ${prompt}`, null); 
-
-            // 2. Display the error message immediately
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = 'flex justify-start';
-            const messageBubble = document.createElement('div');
-            // Use a red background to clearly indicate an error/limitation
-            messageBubble.className = 'p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble bg-red-700 text-white';
-            
-            messageBubble.innerHTML = `
-                <span class="font-bold">Image Generation Error:</span> 
-                The Imagen model (\`imagen-3.0-generate-002\`) requires a **billed account** 💳 on Google Cloud and is not available in the free tier.
-                <br><br>
-                Please use regular text chat or image analysis 📸, which are available for free.
-            `;
-            
-            messageWrapper.appendChild(messageBubble);
-            chatMessages.appendChild(messageWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Ensure the input is ready for the next command
-            setLoadingState(false);
-            chatInput.focus();
         }
 
         // --- Main Chat Logic ---
@@ -475,7 +480,7 @@
                 finalBubble.innerHTML = renderMarkdown(fullResponseText);
                 
                 // Apply Syntax Highlighting
-                finalBubble.querySelectorAll('pre code').forEach((block) => {
+                finalBubble.querySelectorAll('.code-container pre code').forEach((block) => {
                     hljs.highlightElement(block);
                 });
 
@@ -502,7 +507,7 @@
         }
         
 
-        // --- Event Listeners (Modified) ---
+        // --- Event Listeners ---
         
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -518,19 +523,7 @@
             }
             
             if (!isLoading) {
-                // *** LOGIC: Check for image generation command and redirect to error function ***
-                if (prompt.toLowerCase().startsWith('/image ')) {
-                    const imagePrompt = prompt.substring(7).trim(); // Remove "/image "
-                    if (imagePrompt) {
-                        generateImage(imagePrompt); // Calls the new error message function
-                    } else {
-                        errorMessage.textContent = "Please provide a description after /image.";
-                        return;
-                    }
-                } else {
-                    // Default to text/multi-modal chat
-                    getStreamResponse(prompt);
-                }
+                getStreamResponse(prompt);
 
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
