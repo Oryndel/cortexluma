@@ -226,7 +226,6 @@
         const imagePreviewContainer = document.getElementById('image-preview-container');
 
         // --- API Endpoint ---
-        // NOTE: Replace this with your actual Render URL if different!
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
 
         let isLoading = false;
@@ -453,3 +452,84 @@
                 // 5. FINAL STEP: Re-render the final response with full markdown
                 const finalBubble = chatMessages.lastChild.querySelector('div:last-child');
                 finalBubble.innerHTML = renderMarkdown(fullResponseText);
+                
+                // Apply Syntax Highlighting
+                finalBubble.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+
+                // 6. Update history with the complete model response
+                chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
+
+            } catch (error) {
+                console.error('Frontend Error:', error);
+                // Remove the partial response bubble and the user's message if it was only an image and failed
+                if (chatMessages.lastChild) {
+                    chatMessages.lastChild.remove(); // Remove model error bubble
+                }
+                if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+                    chatHistory.pop(); // Remove the failed user message from history
+                    chatMessages.lastChild.remove(); // Remove user message bubble
+                }
+
+                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
+            } finally {
+                setLoadingState(false);
+                removeImage(); // Important: Clear the image after sending it
+                chatInput.focus();
+            }
+        }
+        
+
+        // --- Event Listeners ---
+        
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const prompt = chatInput.value.trim();
+            
+            // Check if user is trying to submit an empty prompt AND no image
+            if (!prompt && !uploadedImage) {
+                 errorMessage.textContent = "Please enter a message or upload an image.";
+                 return;
+            }
+            if (prompt.length > MAX_PROMPT_LENGTH) {
+                 errorMessage.textContent = `Message is too long. Max ${MAX_PROMPT_LENGTH} characters.`;
+                 return;
+            }
+            
+            if (!isLoading) {
+                // Call the main streaming function
+                getStreamResponse(prompt);
+
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+            }
+        });
+        
+        chatInput.addEventListener('input', () => {
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            chatInput.style.height = (chatInput.scrollHeight) + 'px';
+            
+            // Clear error message on typing
+            if (chatInput.value.trim().length > 0) {
+                 errorMessage.textContent = '';
+            }
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            // Send on Enter, but allow newline with Shift+Enter
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            chatInput.focus();
+        });
+
+    </script>
+</body>
+</html>
