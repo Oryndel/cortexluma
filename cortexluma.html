@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI - MAXED OUT 🚀</title>
+  <title>CortexLuma AI - MAXED OUT 🚀 with Images</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,7 +89,7 @@
       border-radius: 1rem;
     }
 
-    /* FEATURE: Styling for Highlight.js code blocks */
+    /* Styling for Highlight.js code blocks */
     .chat-bubble pre {
       margin-top: 0.75rem;
       margin-bottom: 0.75rem;
@@ -103,6 +103,27 @@
         background-color: transparent !important; /* Override inline code style */
         padding: 0 !important;
         border-radius: 0 !important;
+    }
+    /* NEW: Image Placeholder Style */
+    .image-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      color: #94a3b8;
+      background-color: #1e293b;
+      border: 2px dashed #475569;
+      border-radius: 0.75rem;
+      min-height: 200px;
+    }
+    /* NEW: Generated Image Style */
+    .generated-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
@@ -129,14 +150,14 @@
 
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v1.0</span></h1>
-      <p class="text-slate-400 mt-1">Your Smart ChatGPT Jr Assistant 🤖</p>
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v2.0</span></h1>
+      <p class="text-slate-400 mt-1">Chat or use <code class="text-yellow-300">/image [prompt]</code> to generate a picture 🖼️</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
       <div class="flex justify-start">
         <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span> — your AI buddy, now with code highlighting! How can I help?
+          Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. Try asking me to <code class="bg-indigo-700 text-yellow-300 px-1 py-0.5 rounded text-xs">/image a retrofuturistic city at sunset</code>!
         </div>
       </div>
     </div>
@@ -147,7 +168,7 @@
           id="chat-input" 
           class="flex-1 p-3 pr-12 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
           rows="1"
-          placeholder="Send a message..."
+          placeholder="Send a message, or type /image [prompt]..."
           style="min-height: 44px; max-height: 200px;"
         ></textarea>
         <button 
@@ -170,8 +191,9 @@
         const errorMessage = document.getElementById('error-message');
         const sendButton = document.getElementById('send-button');
         
-        // Ensure this matches your backend streaming endpoint
-        const BACKEND_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        // --- API Endpoints ---
+        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        const IMAGE_GEN_URL = "https://cortexluma-backend.onrender.com/api/generate-image"; 
 
         let isLoading = false;
         let chatHistory = []; 
@@ -190,7 +212,6 @@
                 : '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>';
         }
         
-        // FEATURE: New Chat Confirmation
         function newChat() {
             if (chatHistory.length > 0) {
                 if (!confirm("Start a new chat? Your current conversation history will be lost.")) {
@@ -201,7 +222,7 @@
             chatMessages.innerHTML = `
               <div class="flex justify-start">
                 <div class="bg-indigo-600 p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                  Conversation reset! 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span> — your AI buddy, now with code highlighting! How can I help?
+                  Conversation reset! 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. Try asking me to <code class="bg-indigo-700 text-yellow-300 px-1 py-0.5 rounded text-xs">/image a retrofuturistic city at sunset</code>!
                 </div>
               </div>
             `;
@@ -210,35 +231,27 @@
         }
 
 
-        // FEATURE: Advanced Markdown Rendering (Code Block and Syntax Highlighting)
+        // Markdown Rendering (Unchanged)
         function renderMarkdown(text) {
              let html = text;
-
-             // 1. Handle Fenced Code Blocks first (```language\ncode\n```)
-             // This is a complex regex for markdown parsing, but necessary for the highlight.js flow.
-             // It captures: ```, optional language, the code block, and ```
              const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
              html = html.replace(codeBlockRegex, (match, lang, code) => {
-                 // lang is optional (e.g., 'javascript', 'python')
                  const languageClass = lang ? `language-${lang.trim()}` : 'language-plaintext';
-                 // Highlight.js needs <pre><code> for highlighting
                  return `<pre><code class="${languageClass}">${code.trim()}</code></pre>`;
              });
 
-             // 2. Simple Formatting (must be careful not to interfere with code block content)
              html = html
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-                .replace(/`(.*?)`/g, '<code class="bg-slate-700 text-yellow-300 px-1 py-0.5 rounded text-xs">$1</code>') // Inline code
-                .replace(/\n/g, '<br>'); // Newlines
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`(.*?)`/g, '<code class="bg-slate-700 text-yellow-300 px-1 py-0.5 rounded text-xs">$1</code>')
+                .replace(/\n/g, '<br>'); 
 
-             // 3. Simple List Item Detection
              html = html.replace(/<br>\s*(-|\*)\s/g, '<br><span class="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-2 flex-shrink-0 align-middle"></span>');
 
              return html;
         }
 
-        // Refactored to set up the container for the streaming message
-        function addMessage(sender, text, isStreaming = false) {
+        // Refactored to set up the container for the streaming message (Text)
+        function addTextMessage(sender, text, isStreaming = false) {
             const messageWrapper = document.createElement('div');
             messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
@@ -259,27 +272,72 @@
 
             // Return a function to allow continuous content appending for streaming
             return (chunk) => {
-                // Use innerText for streaming to avoid partial HTML tags being rendered
                 messageBubble.innerText += chunk; 
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             };
         }
 
-        // --- Main Function (Streaming Implementation) ---
+        // NEW: Function to add an image to the chat
+        function addImageMessage(prompt, base64Data, mimeType) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex justify-start w-full`;
 
-        async function getAiResponse(prompt) {
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'p-3 bg-slate-800 rounded-xl rounded-tl-none max-w-sm md:max-w-md shadow-md transition duration-300 ease-in-out chat-bubble';
+            messageBubble.innerHTML = `
+                <p class="text-sm italic text-indigo-300 mb-2">Image generated for: "${prompt}"</p>
+                <img 
+                    src="data:${mimeType};base64,${base64Data}" 
+                    alt="AI Generated Image" 
+                    class="generated-image"
+                    onerror="this.src='/error-image.png'; this.alt='Image load failed';"
+                />
+            `;
+
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // NEW: Function to display a loading placeholder for the image
+        function addImagePlaceholder(prompt) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex justify-start w-full`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'p-3 bg-slate-800 rounded-xl rounded-tl-none max-w-sm md:max-w-md shadow-md transition duration-300 ease-in-out chat-bubble';
+            messageBubble.id = 'image-loading-placeholder';
+            messageBubble.innerHTML = `
+                <div class="image-placeholder">
+                    <svg class="animate-spin h-8 w-8 text-indigo-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="text-sm">Generating image for: "${prompt}"...</p>
+                    <p class="text-xs mt-1 text-slate-500">(This may take a few moments)</p>
+                </div>
+            `;
+
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            return messageBubble;
+        }
+
+
+        // --- Main Logic Functions ---
+
+        async function getStreamResponse(prompt) {
             setLoadingState(true);
             
             // Add user message to UI and history
-            addMessage('user', prompt);
+            addTextMessage('user', prompt);
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             
             // Prepare a dedicated message container for the streaming response
-            const responseWriter = addMessage('model', '', true);
+            const responseWriter = addTextMessage('model', '', true);
             let fullResponseText = '';
 
             try {
-                const response = await fetch(BACKEND_URL, {
+                const response = await fetch(TEXT_STREAM_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ history: chatHistory }),
@@ -309,7 +367,7 @@
                 const finalBubble = chatMessages.lastChild.querySelector('div:last-child');
                 finalBubble.innerHTML = renderMarkdown(fullResponseText);
                 
-                // FEATURE: Apply Syntax Highlighting
+                // Apply Syntax Highlighting
                 finalBubble.querySelectorAll('pre code').forEach((block) => {
                     hljs.highlightElement(block);
                 });
@@ -319,6 +377,7 @@
 
             } catch (error) {
                 console.error('Frontend Error:', error);
+                // Remove the partial response bubble
                 if (chatMessages.lastChild) {
                     chatMessages.lastChild.remove();
                 }
@@ -328,25 +387,85 @@
                 chatInput.focus();
             }
         }
+        
+        async function generateImageResponse(prompt) {
+            setLoadingState(true);
+            
+            // 1. Add user prompt to chat
+            addTextMessage('user', `/image ${prompt}`);
+
+            // 2. Add loading placeholder for AI response
+            const placeholder = addImagePlaceholder(prompt);
+            
+            try {
+                const response = await fetch(IMAGE_GEN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                });
+                
+                const data = await response.json();
+
+                // 3. Handle errors from the server (e.g., safety rejection, API key issues)
+                if (!response.ok) {
+                    throw new Error(data.error || 'Image generation failed due to unknown server error.');
+                }
+                
+                // 4. Remove placeholder and display image
+                placeholder.remove();
+                addImageMessage(prompt, data.image.data, data.image.mimeType);
+
+                // Note: Image generations are NOT added to the chatHistory to keep history text-only 
+                // for the language model.
+
+            } catch (error) {
+                console.error('Image Generation Error:', error);
+                // 5. Replace placeholder with an error message
+                placeholder.className = 'flex justify-start w-full';
+                placeholder.innerHTML = `<div class="p-3 bg-red-800/30 text-red-300 rounded-xl rounded-tl-none max-w-sm md:max-w-md shadow-md transition duration-300 ease-in-out chat-bubble">
+                    <p class="font-bold">Image Error:</p>
+                    <p class="text-sm">${error.message}</p>
+                    <p class="text-xs mt-2">Try a different prompt.</p>
+                </div>`;
+                errorMessage.innerHTML = '';
+            } finally {
+                setLoadingState(false);
+                chatInput.focus();
+            }
+        }
+
 
         // --- Event Listeners ---
         
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const prompt = chatInput.value.trim();
+            const fullPrompt = chatInput.value.trim();
             
-            // FEATURE: Client-side Validation (Maxed-out UX)
-            if (!prompt) {
-                 errorMessage.textContent = "Please enter a message.";
+            // Client-side Validation
+            if (!fullPrompt) {
+                 errorMessage.textContent = "Please enter a message or /image command.";
                  return;
             }
-            if (prompt.length > MAX_PROMPT_LENGTH) {
+            if (fullPrompt.length > MAX_PROMPT_LENGTH) {
                  errorMessage.textContent = `Message is too long. Max ${MAX_PROMPT_LENGTH} characters.`;
                  return;
             }
             
-            if (prompt && !isLoading) {
-                getAiResponse(prompt);
+            if (!isLoading) {
+                // Check for /image command
+                if (fullPrompt.toLowerCase().startsWith('/image ')) {
+                    const imagePrompt = fullPrompt.substring(7).trim(); // Remove "/image "
+                    if (imagePrompt.length > 0) {
+                        generateImageResponse(imagePrompt);
+                    } else {
+                        errorMessage.textContent = "Please provide a prompt after /image.";
+                        return;
+                    }
+                } else {
+                    // Default to text streaming
+                    getStreamResponse(fullPrompt);
+                }
+
                 chatInput.value = '';
                 chatInput.style.height = 'auto';
             }
