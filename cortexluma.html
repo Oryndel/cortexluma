@@ -52,8 +52,16 @@
     }
 
     /* Scrollbar */
-    ::-webkit-scrollbar-thumb { background: #475569; }
-    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 6px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
 
     /* Fade animation for chat bubbles */
     @keyframes fadeInUp {
@@ -489,7 +497,7 @@
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     img.alt = file.name;
-                    img.className = 'h-10 w-10 object-cover rounded shadow-md';
+                    img.className = 'uploaded-image-preview w-20 h-20 object-cover rounded shadow-md';
                     imagePreviews.appendChild(img);
 
                     // Update count when rendering is complete
@@ -547,6 +555,23 @@
             return Math.ceil(text.length / 4);
         }
 
+        // Code Copy Function
+        window.copyCode = function(button) {
+            const codeBlock = button.closest('.code-container').querySelector('code');
+            const code = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 13.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Copied!';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                button.innerHTML = 'Error';
+            });
+        }
+        
         // FEATURE MODIFIED: Code blocks now include a copy button
         function renderMarkdown(text) {
              let html = text;
@@ -582,22 +607,6 @@
              return html;
         }
         
-        // Code Copy Function
-        window.copyCode = function(button) {
-            const codeBlock = button.closest('.code-container').querySelector('code');
-            const code = codeBlock.innerText;
-            
-            navigator.clipboard.writeText(code).then(() => {
-                const originalText = button.innerHTML;
-                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 13.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Copied!';
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                button.innerHTML = 'Error';
-            });
-        }
 
 
         // Renders User Message (and can be used to render history messages)
@@ -606,19 +615,25 @@
             messageWrapper.className = `flex justify-${isHistory ? 'start' : 'end'}`;
 
             const messageBubble = document.createElement('div');
+            // If it's a history item, render with markdown immediately
+            if (isHistory) {
+                messageBubble.innerHTML = renderMarkdown(prompt);
+            } else {
+                messageBubble.innerHTML = prompt || (imageArray.length > 0 ? 'Analyzing uploaded image(s)...' : '');
+            }
+
             messageBubble.className = `p-3 rounded-xl rounded-${isHistory ? 'tl' : 'br'}-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble ${isHistory ? 'ai-bubble' : 'user-bubble'}`;
             
-            // Add text prompt
-            messageBubble.innerHTML = prompt || (imageArray.length > 0 ? 'Analyzing uploaded image(s)...' : '');
-
             // Add image previews if available
             if (imageArray && imageArray.length > 0) {
                 const previewContainer = document.createElement('div');
                 previewContainer.className = 'flex space-x-2 mt-2 flex-wrap';
                 
                 imageArray.forEach(image => {
-                    const base64 = image.inlineData.data;
-                    const mimeType = image.inlineData.mimeType;
+                    // Extract base64 from the GenerativePart structure
+                    const base64 = isHistory ? image.inlineData.data : image.base64; 
+                    const mimeType = isHistory ? image.inlineData.mimeType : image.mimeType;
+
                     const img = document.createElement('img');
                     img.src = `data:${mimeType};base64,${base64}`;
                     img.className = 'uploaded-image-preview w-20 h-20 object-cover';
@@ -626,6 +641,13 @@
                 });
                 
                 messageBubble.appendChild(previewContainer);
+            }
+            
+            // Apply Syntax Highlighting for history items
+            if (isHistory) {
+                messageBubble.querySelectorAll('.code-container pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
             }
 
             messageWrapper.appendChild(messageBubble);
@@ -675,7 +697,16 @@
                     const footer = document.createElement('div');
                     footer.className = 'text-xs text-indigo-200 mt-2 pt-2 border-t border-indigo-400/50';
                     footer.innerHTML = `Time: ${durationSeconds}s | Est. Tokens: ${tokenCount}`;
-                    messageBubble.appendChild(footer);
+                    
+                    // 5. FINAL STEP: Re-render the final response with full markdown
+                    const finalBubble = chatMessages.lastChild.querySelector('div:nth-child(1)'); // Target the bubble div
+                    finalBubble.innerHTML = renderMarkdown(fullResponseText);
+                    finalBubble.appendChild(footer); // Re-append the footer
+                    
+                    // Apply Syntax Highlighting
+                    finalBubble.querySelectorAll('.code-container pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
                 }
             };
         }
@@ -686,15 +717,14 @@
             setLoadingState(true);
             
             // 1. Add user message to UI
-            const userImageParts = uploadedImages.map(img => base64ToGenerativePart(img.base64, img.mimeType)); // FEATURE 5
+            const userImageParts = uploadedImages.map(img => ({inlineData: base64ToGenerativePart(img.base64, img.mimeType).inlineData, base64: img.base64, mimeType: img.mimeType}));
             addUserMessageToUI(prompt, userImageParts, false);
 
             // 2. Prepare payload for the server
-            // Convert uploadedImages array to the structure the server expects (imageParts)
             const imagePartsForServer = uploadedImages.map(img => base64ToGenerativePart(img.base64, img.mimeType));
             
             // 3. Add the new user message to history for server processing
-            chatHistory.push({ role: "user", parts: [{ text: prompt }, ...userImageParts] }); // FEATURE 5
+            chatHistory.push({ role: "user", parts: [{ text: prompt }, ...imagePartsForServer] }); 
 
             // 4. Prepare a dedicated container for the streaming response
             const responseWriter = addModelStreamMessage();
@@ -706,7 +736,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         history: chatHistory, 
-                        imageParts: imagePartsForServer, // FEATURE 5
+                        imageParts: imagePartsForServer,
                         // FEATURE 1, 2, 3: Send model settings
                         temperature: modelSettings.temperature,
                         maxOutputTokens: modelSettings.maxOutputTokens,
@@ -715,8 +745,8 @@
                 });
 
                 if (!response.ok || !response.body) {
-                    const errorDetails = await response.json().catch(() => ({ error: 'Unknown Upstream API error' }));
-                    throw new Error(`API Status ${response.status}: ${errorDetails.error || 'Request failed'}`);
+                    const errorText = await response.text();
+                    throw new Error(`API Status ${response.status}: ${errorText || 'Request failed to connect to the backend server.'}`);
                 }
 
                 const reader = response.body.getReader();
@@ -734,19 +764,7 @@
                     }
                 }
                 
-                responseWriter(null, true); // Final call to update timing/tokens
-
-                // 5. FINAL STEP: Re-render the final response with full markdown
-                const finalBubble = chatMessages.lastChild.querySelector('div:nth-child(2)'); // Target the bubble div
-                const finalFooter = finalBubble.querySelector('.text-xs');
-
-                finalBubble.innerHTML = renderMarkdown(fullResponseText);
-                if(finalFooter) finalBubble.appendChild(finalFooter); // Re-append the footer
-
-                // Apply Syntax Highlighting
-                finalBubble.querySelectorAll('.code-container pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
+                responseWriter(null, true); // Final call to update timing/tokens and re-render markdown
 
                 // 6. Update history with the complete model response
                 chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
@@ -764,7 +782,7 @@
                     if(chatMessages.lastChild) chatMessages.lastChild.remove(); // Remove user message
                 }
                 
-                errorMessage.innerHTML = `<span class="font-bold">API Error:</span> ${error.message}`;
+                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
             } finally {
                 setLoadingState(false);
                 removeAllImages(); 
