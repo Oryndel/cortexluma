@@ -1,754 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI - Real-Time Multi-Modal Chat & Image Gen</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Inter Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Highlight.js for Code Syntax -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Dark Mode Authentication</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Deep Blue Dark Theme Styling */
+        :root {
+            --color-bg-dark: #12121e;
+            --color-card-dark: #1f2937;
+            --color-primary: #3b82f6;
+            --color-primary-hover: #2563eb;
+            --color-text-light: #e5e7eb;
+            --color-input-bg: #374151;
+            --color-input-border: #4b5563;
+        }
 
-  <!-- Marked.js for Markdown Parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-  <style>
-    /* BASE VARIABLES (FEATURE 8: Theme Toggle) */
-    :root {
-        --bg-start: #0f172a;
-        --bg-end: #1e293b;
-        --text-color: #e2e8f0;
-        --chat-box-bg: rgba(15, 23, 42, 0.8);
-        --input-bg: #1e293b;
-        --input-border: #334155;
-        --card-bg: #1e293b;
-        --primary-color: #3b82f6;
-    }
-
-    /* Light Mode Variables */
-    body.light-mode {
-        --bg-start: #f8fafc;
-        --bg-end: #e2e8f0;
-        --text-color: #0f172a;
-        --chat-box-bg: rgba(255, 255, 255, 0.95);
-        --input-bg: #f1f5f9;
-        --input-border: #cbd5e1;
-        --card-bg: #ffffff;
-        --primary-color: #1d4ed8;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh; /* Use min-height for full-page scroll */
-      padding: 20px;
-      color: var(--text-color);
-      transition: background-color 0.3s;
-    }
-
-    /* Main Card */
-    .chat-card {
-        background: var(--card-bg);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-
-    /* Scrollbar */
-    #chat-box::-webkit-scrollbar {
-      width: 8px;
-    }
-    #chat-box::-webkit-scrollbar-thumb {
-      background: #475569;
-      border-radius: 6px;
-    }
-    #chat-box::-webkit-scrollbar-thumb:hover {
-      background: #64748b;
-    }
-    
-    /* Input Area */
-    #chat-input {
-        background-color: var(--input-bg);
-        border: 1px solid var(--input-border);
-        color: var(--text-color);
-        resize: none;
-        max-height: 200px; /* Limit input size */
-        overflow-y: auto;
-    }
-
-    /* Fade animation for chat bubbles */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fadeInUp {
-        animation: fadeInUp 0.3s ease-out;
-    }
-    
-    /* Code Highlighting in AI Responses */
-    .prose code:not(pre code) {
-        background-color: #334155 !important;
-        padding: 2px 4px;
-        border-radius: 3px;
-        color: #fca5a5 !important;
-    }
-    .prose pre {
-        padding: 0 !important;
-        background-color: transparent !important;
-        border-radius: 0.5rem;
-        overflow-x: auto;
-    }
-    .prose pre code {
-        display: block;
-        padding: 1rem;
-        font-size: 0.9em;
-        background-color: #1a2332 !important;
-        border-radius: 0.5rem;
-    }
-    
-    /* Style the AI-generated message (which uses prose-invert for dark mode text) */
-    .prose-invert h1, .prose-invert h2, .prose-invert p, .prose-invert li {
-        color: inherit !important;
-    }
-    .prose-invert img {
-        border-radius: 0.5rem;
-    }
-    
-    /* Styling for the User Icon in chat */
-    .bg-gray-500 {
-        background-color: #64748b;
-    }
-    /* Styling for the AI Icon in chat */
-    .bg-indigo-500 {
-        background-color: var(--primary-color);
-    }
-    
-  </style>
+        body {
+            background-color: var(--color-bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: var(--color-text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .auth-card {
+            background-color: var(--color-card-dark);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        .input-field {
+            background-color: var(--color-input-bg);
+            border: 1px solid var(--color-input-border);
+            color: var(--color-text-light);
+            transition: all 0.15s ease-in-out;
+        }
+        .input-field:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 1px var(--color-primary);
+            outline: none;
+        }
+        .btn-primary {
+            background-color: var(--color-primary);
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+        .btn-red {
+            background-color: #dc2626;
+            transition: background-color 0.2s ease;
+        }
+        .btn-red:hover {
+            background-color: #b91c1c;
+        }
+        .status-box {
+            border: 1px solid var(--color-input-border);
+            background-color: #374151;
+            color: var(--color-text-light);
+        }
+        .disabled-ui {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
 
-<div class="chat-card w-full max-w-4xl h-[95vh] flex flex-col rounded-xl overflow-hidden p-0">
-    <!-- Header -->
-    <header class="flex items-center justify-between p-4 bg-gray-700/80 shadow-lg border-b border-gray-600/50">
-        <div class="flex items-center">
-            <!-- Icon is now the title itself -->
-            <h1 class="text-2xl font-bold text-white">CortexLuma AI <span class="text-indigo-400">GPT</span></h1>
-            <p class="text-xs ml-3 text-gray-300 hidden sm:block">Real-Time Chat, Multi-Modal, & AI Image Generation</p>
-        </div>
-        <div class="flex space-x-2">
-            <!-- Settings Button -->
-            <button id="settings-button" class="p-2 rounded-full hover:bg-gray-600 transition-colors" title="Settings">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44C9.72 2 8 3.73 8 5.78v.55C6.75 6.46 5.86 7.63 5.34 9H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1.34c.52 1.37 1.41 2.54 2.66 3.17v.55C8 20.27 9.72 22 11.78 22h.44c2.05 0 3.78-1.73 3.78-3.78v-.55c1.25-.63 2.14-1.8 2.66-3.17H20c1.1 0 2-.9 2-2v-2c0-1.1-.9-2-2-2h-1.34c-.52-1.37-1.41-2.54-2.66-3.17v-.55C16 3.73 14.28 2 12.22 2zM12 18a6 6 0 100-12 6 6 0 000 12zM12 15a3 3 0 100-6 3 3 0 000 6z"/></svg>
-            </button>
-            <!-- Clear Chat Button -->
-            <button id="clear-chat" class="p-2 rounded-full hover:bg-red-700 transition-colors" title="Clear Chat History">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0 1.45 15.22A2 2 0 008.45 23h7.1a2 2 0 001.99-1.78L21 6H3zm13-3l-1-1H8L7 3h9z"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            </button>
-            <!-- Theme Toggle Button -->
-            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-600 transition-colors" title="Toggle Theme">
-                <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            </button>
-        </div>
-    </header>
+    <!-- Main Authentication Card -->
+    <div id="auth-container" class="auth-card p-8 rounded-xl w-full max-w-lg mx-4">
+        
+        <h1 id="form-title" class="text-3xl font-extrabold text-center mb-6 text-white tracking-wide">Login</h1>
 
-    <!-- Chat Box -->
-    <main id="chat-box" class="flex-grow p-4 overflow-y-auto space-y-4">
-        <!-- Initial Welcome Message -->
-        <div class="flex mb-4 p-4 rounded-xl bg-[var(--chat-box-bg)] mr-auto text-[var(--text-color)] shadow-lg max-w-full">
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center mr-3 text-white font-bold">A</div>
-            <div class="flex-grow prose prose-invert max-w-none">
-                <p>Hello! I am CortexLuma, a multi-modal AI assistant powered by Google's Gemini. I can chat, analyze images, and even generate AI images!</p>
-                <p class="mt-2 text-sm text-indigo-300">
-                    Try typing:
-                    <ul class="list-disc ml-6 mt-1 space-y-1">
-                        <li>**A prompt** to chat. (e.g., *Explain quantum computing*)</li>
-                        <li>**Upload an image** and ask me to analyze it.</li>
-                        <li>**`/image`** followed by a prompt to generate an image. (e.g., */image A hyper-realistic robot playing chess on Mars*)</li>
-                    </ul>
-                </p>
-            </div>
-        </div>
-        <!-- Chat messages will be appended here -->
-    </main>
-
-    <!-- Input Area -->
-    <div class="p-4 border-t border-gray-700/50 bg-gray-700/80">
-        <!-- Attached Files Indicator -->
-        <div id="attached-files-container" class="mb-2 flex flex-wrap gap-2 text-sm">
-            <!-- Attached files will appear here -->
+        <!-- User Status Display -->
+        <div id="user-status" class="status-box mb-6 p-3 rounded-lg text-center text-sm font-medium">
+            Checking Firebase status...
         </div>
 
-        <!-- Loading Indicator -->
-        <div id="loading-indicator" class="hidden text-center py-2 text-indigo-400 font-medium">
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            AI is typing...
-        </div>
+        <!-- Notification/Error Message Area -->
+        <div id="message-box" class="hidden mb-4 p-3 rounded-lg text-sm font-medium"></div>
 
-        <!-- Error Message -->
-        <p id="error-message" class="text-red-400 text-sm mb-2"></p>
-
-        <!-- Chat Input Form -->
-        <form id="chat-form" class="flex items-end space-x-2">
+        <!-- Form Fields Container -->
+        <div id="auth-form" class="space-y-4">
             
-            <!-- File Upload Button -->
-            <label for="file-upload" class="p-3 rounded-full cursor-pointer bg-gray-600 hover:bg-gray-500 transition-colors self-end" title="Attach Image">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                <input type="file" id="file-upload" accept="image/*" multiple class="hidden">
-            </label>
+            <!-- Registration Fields (Initially Hidden for Login) -->
+            <div id="register-fields" class="space-y-4 hidden">
+                
+                <!-- Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium mb-1">Full Name</label>
+                    <input type="text" id="name" placeholder="John Doe" class="input-field block w-full px-4 py-3 rounded-lg">
+                </div>
+                
+                <!-- Phone Number -->
+                <div>
+                    <label for="phone" class="block text-sm font-medium mb-1">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" placeholder="(123) 456-7890" class="input-field block w-full px-4 py-3 rounded-lg">
+                </div>
 
-            <!-- Textarea -->
-            <textarea id="chat-input" class="flex-grow p-3 rounded-xl border-2 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Message CortexLuma... (or type /image [prompt] for AI image generation)" rows="1"></textarea>
+                <!-- Age -->
+                <div>
+                    <label for="age" class="block text-sm font-medium mb-1">Age (Optional)</label>
+                    <input type="number" id="age" placeholder="25" min="1" max="150" class="input-field block w-full px-4 py-3 rounded-lg">
+                </div>
+            </div>
 
-            <!-- Send Button -->
-            <button id="send-button" type="submit" class="p-3 rounded-full bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-lg self-end" title="Send">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Settings Modal -->
-<div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-lg">
-        <div class="flex justify-between items-center border-b pb-3 mb-4">
-            <h2 class="text-2xl font-bold text-white">Model Settings</h2>
-            <button id="close-settings" class="text-gray-400 hover:text-white">&times;</button>
-        </div>
-        <form id="settings-form" class="space-y-4">
+            <!-- Email -->
             <div>
-                <label for="system-instruction" class="block text-sm font-medium text-gray-300 mb-1">System Instruction (AI Personality)</label>
-                <textarea id="system-instruction" rows="3" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white resize-none" placeholder="You are a helpful, witty, and concise AI assistant.">You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Google. You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging.</textarea>
+                <label for="email" class="block text-sm font-medium mb-1">Email</label>
+                <input type="email" id="email" placeholder="you@example.com" class="input-field block w-full px-4 py-3 rounded-lg">
             </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="temperature" class="block text-sm font-medium text-gray-300 mb-1">Temperature (Creativity: 0.0 - 1.0)</label>
-                    <input type="number" id="temperature" min="0.0" max="1.0" step="0.1" value="0.7" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" required>
-                </div>
-                <div>
-                    <label for="max-tokens" class="block text-sm font-medium text-gray-300 mb-1">Max Output Tokens</label>
-                    <input type="number" id="max-tokens" min="1" max="8192" value="2048" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white" required>
-                </div>
+
+            <!-- Password with Toggle -->
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium mb-1">Password</label>
+                <!-- NOTE: Added autocomplete="off" to prevent password persistence/autofill -->
+                <input type="password" id="password" placeholder="••••••••" class="input-field block w-full px-4 py-3 rounded-lg pr-12" autocomplete="off">
+                
+                <!-- Eye Icon Toggle Button -->
+                <button id="password-toggle-btn" type="button" 
+                        aria-label="Show Password"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none transition duration-150 p-1 rounded-full">
+                    
+                    <!-- Eye Icon (Password Hidden - Default State) -->
+                    <svg id="eye-on" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    
+                    <!-- Slashed Eye Icon (Password Visible - Initially Hidden) -->
+                    <svg id="eye-off" class="h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.16 13.16 0 0 0 2 12s3 7 10 7a9.88 9.88 0 0 0 4.29-.93"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                </button>
             </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-6 space-y-4">
             
-            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors">Save Settings</button>
-        </form>
+            <!-- Logged Out Buttons (Primary Actions) -->
+            <div id="logged-out-buttons">
+                <!-- Login Button (Default View) -->
+                <button 
+                    id="login-btn" 
+                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md"
+                >
+                    Login
+                </button>
+                
+                <!-- Toggle to Registration -->
+                <button 
+                    id="toggle-register-btn" 
+                    class="mt-3 w-full text-sm text-gray-400 hover:text-blue-400 transition duration-150"
+                >
+                    Don't have an account? <span class="font-semibold">Register Here</span>
+                </button>
+
+                <!-- Register Button (Hidden initially) -->
+                 <button 
+                    id="register-btn" 
+                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md hidden"
+                >
+                    Register Account
+                </button>
+
+                <!-- Toggle back to Login -->
+                <button 
+                    id="toggle-login-btn" 
+                    class="mt-3 w-full text-sm text-gray-400 hover:text-blue-400 transition duration-150 hidden"
+                >
+                    Already have an account? <span class="font-semibold">Login</span>
+                </button>
+            </div>
+
+            <!-- Logged In Buttons (visible when logged in) -->
+            <!-- Updated this section to only contain the Go to App button -->
+            <div id="logged-in-actions" class="hidden">
+                 <button 
+                    id="go-to-app-btn" 
+                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md"
+                >
+                    Go to Cortexluma →
+                </button>
+            </div>
+        </div>
+
     </div>
-</div>
 
-<script>
- 
-        const BACKEND_URL = 'https://cortexluma-backend.onrender.com';
-        // --- CONSTANTS AND VARIABLES ---
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const chatBox = document.getElementById('chat-box');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const errorMessage = document.getElementById('error-message');
-        const settingsModal = document.getElementById('settings-modal');
-        const settingsForm = document.getElementById('settings-form');
-        const settingsButton = document.getElementById('settings-button');
-        const closeSettingsButton = document.getElementById('close-settings');
-        const clearChatButton = document.getElementById('clear-chat');
-        const themeToggleButton = document.getElementById('theme-toggle');
-        const fileInput = document.getElementById('file-upload');
-        const attachedFilesContainer = document.getElementById('attached-files-container');
+    <!-- Firebase SDK Initialization and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const BASE_URL = ''; // Use empty string for relative path (same server)
-        const MAX_PROMPT_LENGTH = 1000;
-        let isLoading = false;
-        let chatHistory = [];
-        let uploadedImageParts = [];
+        // --- UI REFERENCES ---
+        const formTitle = document.getElementById('form-title');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const nameInput = document.getElementById('name');
+        const phoneInput = document.getElementById('phone');
+        const ageInput = document.getElementById('age');
 
-        // --- HELPER FUNCTIONS ---
+        const registerFields = document.getElementById('register-fields');
+        // New Icon References
+        const passwordToggleBtn = document.getElementById('password-toggle-btn');
+        const eyeOn = document.getElementById('eye-on');
+        const eyeOff = document.getElementById('eye-off');
+        
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const toggleRegisterBtn = document.getElementById('toggle-register-btn');
+        const toggleLoginBtn = document.getElementById('toggle-login-btn');
+        
+        // References for Logged In state
+        const goToAppBtn = document.getElementById('go-to-app-btn');
+        const loggedInActions = document.getElementById('logged-in-actions');
 
-        /**
-         * Converts a File object to a GenerativePart object for the API.
-         * @param {File} file The file to convert.
-         * @returns {Promise<{inlineData: {data: string, mimeType: string}}>}
-         */
-        async function fileToGenerativePart(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64Data = reader.result.split(',')[1];
-                    resolve({
-                        inlineData: {
-                            data: base64Data,
-                            mimeType: file.type,
-                        },
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
+        const userStatus = document.getElementById('user-status');
+        const messageBox = document.getElementById('message-box');
+        const authForm = document.getElementById('auth-form');
+
+        // --- CONFIGURATION ---
+        
+        // **!!! CRITICAL: CHANGE THIS URL TO YOUR TARGET WEBSITE !!!**
+        const REDIRECT_URL = 'https://oryndel.github.io/cortexluma/cortexluma'; 
+
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBhUXJqjFiygvNx60CA4R8HrfZ2ghV8GCA",
+            authDomain: "contexluma-authcation.firebaseapp.com",
+            projectId: "contexluma-authcation",
+            storageBucket: "contexluma-authcation.firebasestorage.app",
+            messagingSenderId: "446271009223",
+            appId: "1:446271009223:web:3b5df78c8b9c43806669e2",
+            measurementId: "G-2ZPY3K5VYX"
+        };
+        
+        // Environment variables for pathing, prioritizing environment variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : FIREBASE_CONFIG.projectId;
+        
+        /** Shows a temporary success or error message. */
+        function showMessage(type, message) {
+            messageBox.textContent = message;
+            messageBox.className = `mb-4 p-3 rounded-lg text-sm font-medium ${type === 'error' ? 'bg-red-700 text-white' : 'bg-green-700 text-white'}`;
+            messageBox.style.display = 'block';
+            if (message.indexOf('FATAL') === -1) {
+                setTimeout(() => { messageBox.style.display = 'none'; }, 5000); 
+            }
         }
 
-        /**
-         * Add a new message to the chat box.
-         * @param {'user'|'ai'} role 
-         * @param {string} content 
-         * @param {boolean} [isStreaming=false] - Whether the message is currently streaming.
-         * @returns {string} The ID of the created message element.
-         */
-        function addMessage(role, content, isStreaming = false) {
-            const messageElement = document.createElement('div');
-            // Unique ID generation
-            const id = 'msg-' + Date.now() + Math.random().toString(16).slice(2);
-            messageElement.id = id;
-            messageElement.className = `flex mb-4 p-3 rounded-xl animate-fadeInUp max-w-[90%] md:max-w-[75%] shadow-xl ${
-                role === 'user' 
-                    ? 'bg-blue-600 ml-auto text-white' 
-                    : 'bg-[var(--chat-box-bg)] mr-auto text-[var(--text-color)]'
-            }`;
-            
-            // Handle markdown and code highlighting
-            // The prose-invert class is needed to ensure text inside the prose block uses the correct color in dark mode
-            if (role === 'ai') {
-                 messageElement.innerHTML = `
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center mr-3 text-white font-bold">A</div>
-                    <div class="flex-grow prose prose-invert max-w-none">
-                        ${marked.parse(content)}
-                    </div>
-                 `;
+        // --- FIREBASE INITIALIZATION ---
+        let auth, db;
+        
+        if (!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) {
+            const errorMessage = 'FATAL ERROR: Firebase configuration is invalid (missing API Key or Project ID).';
+            showMessage('error', errorMessage);
+            userStatus.textContent = 'Configuration Error.';
+            authForm.classList.add('disabled-ui');
+            document.getElementById('logged-out-buttons').classList.add('disabled-ui');
+        } else {
+            try {
+                const app = initializeApp(FIREBASE_CONFIG);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                userStatus.textContent = 'Please log in or register.';
+            } catch (error) {
+                 const errorMessage = `FATAL INIT ERROR: Failed to initialize Firebase. Error: ${error.message}`;
+                 showMessage('error', errorMessage);
+                 userStatus.textContent = 'Initialization Failed.';
+                 authForm.classList.add('disabled-ui');
+                 document.getElementById('logged-out-buttons').classList.add('disabled-ui');
+            }
+        }
+
+        /** Toggles between Login and Register form views. */
+        function toggleForm(isRegisterMode) {
+            if (isRegisterMode) {
+                formTitle.textContent = 'Create Account';
+                registerFields.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                toggleRegisterBtn.classList.add('hidden');
+                registerBtn.classList.remove('hidden');
+                toggleLoginBtn.classList.remove('hidden');
             } else {
-                 messageElement.innerHTML = `
-                    <div class="flex-grow prose prose-invert max-w-none">
-                        ${content}
-                    </div>
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center ml-3 text-white font-bold">U</div>
-                 `;
+                formTitle.textContent = 'Login';
+                registerFields.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                toggleRegisterBtn.classList.remove('hidden');
+                registerBtn.classList.add('hidden');
+                toggleLoginBtn.classList.add('hidden');
             }
+        }
 
-            if (isStreaming) {
-                messageElement.classList.add('loading-message');
-            }
-
-            chatBox.appendChild(messageElement);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        /** Handles successful auth event: displays message and performs redirect. */
+        function handleAuthSuccess(user) {
+            showMessage('success', `Welcome ${user.displayName || user.email}! Redirecting now...`);
             
-            // Apply syntax highlighting after adding to DOM
-            messageElement.querySelectorAll('pre code').forEach((block) => {
-                // Ensure text is decoded properly before highlighting
-                block.textContent = block.textContent; 
-                hljs.highlightElement(block);
+            // Clear inputs
+            passwordInput.value = ''; 
+            emailInput.value = '';
+            nameInput.value = '';
+            phoneInput.value = '';
+            ageInput.value = '';
+
+            // --- ACTUAL REDIRECTION ---
+            // Redirect immediately after successful login/registration
+            setTimeout(() => {
+                window.location.href = REDIRECT_URL;
+            }, 100); 
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // 1. Password Visibility Toggle
+        passwordToggleBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            
+            eyeOn.classList.toggle('hidden', !isPassword); 
+            eyeOff.classList.toggle('hidden', isPassword); 
+            passwordToggleBtn.setAttribute('aria-label', isPassword ? 'Hide Password' : 'Show Password');
+        });
+
+        // 2. Form Toggles
+        toggleRegisterBtn.addEventListener('click', () => toggleForm(true));
+        toggleLoginBtn.addEventListener('click', () => toggleForm(false));
+
+        // 3. Register Handler
+        registerBtn.addEventListener('click', async () => {
+            if (!auth || !db) return; 
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const age = ageInput.value.trim();
+
+            if (!email || !password || !name) {
+                showMessage('error', 'Email, Password, and Full Name are required.');
+                return;
+            }
+            if (password.length < 6) {
+                 showMessage('error', 'Password must be at least 6 characters long.');
+                 return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName: name });
+
+                const profileRef = doc(db, 
+                    `artifacts/${appId}/users/${user.uid}/user_data/profile`
+                );
+                await setDoc(profileRef, {
+                    phone: phone || null,
+                    age: age ? parseInt(age, 10) : null,
+                    email: user.email, 
+                    displayName: name,
+                    createdAt: new Date().toISOString()
+                });
+                
+                handleAuthSuccess(user); 
+
+            } catch (error) {
+                console.error('Registration error:', error.code, error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    showMessage('error', 'Registration Failed: That email address is already registered.');
+                } else if (error.code === 'auth/network-request-failed') {
+                    showMessage('error', 'Registration Failed: Network error. Check your internet connection.');
+                } else {
+                    showMessage('error', `Registration Failed: ${error.message}`);
+                }
+            }
+        });
+
+        // 4. Login Handler
+        loginBtn.addEventListener('click', async () => {
+            if (!auth) return; 
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showMessage('error', 'Please enter both email and password.');
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                handleAuthSuccess(userCredential.user);
+            } catch (error) {
+                console.error('Login error:', error.code, error.message);
+                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                    showMessage('error', 'Login Failed: Invalid email or password.');
+                } else if (error.code === 'auth/network-request-failed') {
+                    showMessage('error', 'Login Failed: Network error. Check your internet connection.');
+                } else {
+                    showMessage('error', `Login Failed: ${error.message}`);
+                }
+            }
+        });
+
+        // 5. Go to App Handler (Manual Redirect)
+        goToAppBtn.addEventListener('click', () => {
+            window.location.href = REDIRECT_URL;
+        });
+
+
+        // 6. Authentication State Listener (Mandatory for UI updates)
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
+                const loggedOutButtonsContainer = document.getElementById('logged-out-buttons');
+
+                if (user) {
+                    // LOGGED IN: SHOW STATUS AND MANUAL REDIRECT BUTTON (Go to App)
+                    userStatus.textContent = `Logged in as: ${user.displayName || user.email}.`;
+                    userStatus.classList.remove('bg-gray-700', 'text-gray-300');
+                    userStatus.classList.add('bg-green-700', 'text-white'); 
+                    
+                    authForm.classList.add('hidden');
+                    loggedOutButtonsContainer.classList.add('hidden');
+
+                    loggedInActions.classList.remove('hidden'); // Show Logged In button (Go to App)
+
+                } else {
+                    // LOGGED OUT
+                    userStatus.textContent = 'Please log in or register.';
+                    userStatus.classList.remove('bg-green-700', 'text-white');
+                    userStatus.classList.add('bg-gray-700', 'text-gray-300'); 
+                    
+                    authForm.classList.remove('hidden');
+                    loggedOutButtonsContainer.classList.remove('hidden');
+
+                    loggedInActions.classList.add('hidden'); // Hide Logged In button
+
+                    // Ensure the UI is set to the default (login) view
+                    toggleForm(false); 
+                }
             });
-
-            return id;
         }
-
-        /** Removes the last message with the 'loading-message' class or a specific ID. */
-        function removeLoadingIndicator(id = null) {
-            let selector = '.loading-message';
-            if (id) {
-                selector = `#${id}`;
-            }
-            
-            const element = document.querySelector(selector);
-            if (element) {
-                element.remove();
-            }
-        }
-
-        function setLoadingState(state) {
-            isLoading = state;
-            loadingIndicator.classList.toggle('hidden', !state);
-            chatInput.disabled = state;
-            document.getElementById('send-button').disabled = state;
-            // Also disable settings and clear chat while loading
-            settingsButton.disabled = state;
-            clearChatButton.disabled = state;
-            fileInput.disabled = state;
-        }
-
-        function saveHistory() {
-            localStorage.setItem('cortexLumaHistory', JSON.stringify(chatHistory));
-        }
-
-        function loadHistory() {
-            const historyString = localStorage.getItem('cortexLumaHistory');
-            if (historyString) {
-                try {
-                    chatHistory = JSON.parse(historyString);
-                    // Re-add messages to the DOM but skip images parts, only showing text
-                    chatHistory.forEach(message => {
-                        if (message.role && message.parts) {
-                            // Only join text parts for display on load
-                            const textContent = message.parts.map(part => part.text).filter(Boolean).join(' ');
-                            if (textContent) {
-                                addMessage(message.role, textContent);
-                            }
-                        }
-                    });
-                } catch (e) {
-                    console.error("Could not load chat history:", e);
-                    chatHistory = []; // Clear corrupted history
-                }
-            }
-        }
-
-        function saveSettings() {
-            const settings = {
-                temperature: document.getElementById('temperature').value,
-                maxOutputTokens: document.getElementById('max-tokens').value,
-                systemInstruction: document.getElementById('system-instruction').value,
-            };
-            localStorage.setItem('cortexLumaSettings', JSON.stringify(settings));
-        }
-
-        function loadSettings() {
-            const settingsString = localStorage.getItem('cortexLumaSettings');
-            if (settingsString) {
-                try {
-                    const settings = JSON.parse(settingsString);
-                    document.getElementById('temperature').value = settings.temperature;
-                    document.getElementById('max-tokens').value = settings.maxOutputTokens;
-                    document.getElementById('system-instruction').value = settings.systemInstruction;
-                } catch (e) {
-                    console.error("Could not load settings:", e);
-                }
-            }
-        }
-
-        function toggleTheme() {
-            const isLightMode = document.body.classList.toggle('light-mode');
-            localStorage.setItem('cortexLumaTheme', isLightMode ? 'light' : 'dark');
-            document.getElementById('moon-icon').classList.toggle('hidden', isLightMode);
-            document.getElementById('sun-icon').classList.toggle('hidden', !isLightMode);
-        }
-
-        function removeAllFiles() {
-            uploadedImageParts = [];
-            attachedFilesContainer.innerHTML = '';
-            fileInput.value = ''; // Clear file input state
-        }
-        
-        // --- API CALL FUNCTIONS ---
-
-        /**
-         * NEW FEATURE: Freepik Image Generation Function
-         * @param {string} promptText - The prompt for the image generation.
-         */
-        async function generateAndDisplayImage(promptText) {
-            // 1. Add a temporary loading message to the chat
-            const loadingId = addMessage('ai', 'Generating **Freepik AI Image**... this can take a moment.', true);
-            setLoadingState(true);
-            errorMessage.textContent = '';
-            
-            try {
-                const response = await fetch(`${BASE_URL}/api/generate-image`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ prompt: promptText }),
-                });
-
-                const data = await response.json();
-                
-                // 2. Remove the loading message
-                removeLoadingIndicator(loadingId);
-
-                if (response.ok) {
-                    // 3. Display the generated image
-                    const imageHtml = `<p class="mb-2 font-semibold">✅ **Image generated successfully** for prompt: <span class="text-indigo-400">${promptText}</span></p>
-                        <a href="${data.imageUrl}" target="_blank" class="block w-full max-w-lg mx-auto my-4 rounded-xl overflow-hidden shadow-2xl transition duration-300 transform hover:scale-[1.02] border border-gray-700">
-                            <img src="${data.imageUrl}" alt="AI Generated Image" class="w-full h-auto object-cover"/>
-                        </a>
-                        <p class="text-xs italic mt-2 text-gray-400">Click the image to open in full size. Generated by Freepik AI.</p>`;
-                    
-                    addMessage('ai', imageHtml);
-                    
-                } else {
-                    // This handles errors returned with status 500 from our backend
-                    throw new Error(data.error || 'Failed to generate image from backend.');
-                }
-
-            } catch (error) {
-                console.error('Frontend Image Generation Error:', error);
-                // 4. Handle error display
-                removeLoadingIndicator(loadingId); 
-                addMessage('ai', `<span class="font-bold text-red-400">❌ Image Generation Error:</span> ${error.message}`);
-            } finally {
-                setLoadingState(false);
-                chatInput.focus();
-            }
-        }
-
-
-        /**
-         * Original function for Gemini chat streaming
-         * @param {string} prompt - The user's text prompt.
-         */
-        async function getStreamResponse(prompt) {
-            setLoadingState(true);
-            errorMessage.textContent = '';
-            let aiMessageId = null;
-            let currentAiResponse = '';
-            let firstChunk = true;
-
-            // Get current settings
-            const temperature = document.getElementById('temperature').value;
-            const maxOutputTokens = document.getElementById('max-tokens').value;
-            const systemInstruction = document.getElementById('system-instruction').value;
-            
-            // 1. Prepare history for API (including the new user prompt)
-            const newUserMessage = { 
-                role: 'user', 
-                parts: [{ text: prompt }] 
-            };
-            
-            // Add any uploaded images to the new user message
-            if (uploadedImageParts.length > 0) {
-                // We send the image parts separately to the API to be cleanly merged 
-                // into the last message, this is just for clarity in the API call structure.
-                // NOTE: The backend logic handles merging these into the last history message.
-            }
-            
-            // 2. Add the user text message to history (images are sent via imageParts array)
-            chatHistory.push(newUserMessage);
-
-
-            try {
-                const response = await fetch(`${BASE_URL}/api/stream-chat`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        history: chatHistory,
-                        imageParts: uploadedImageParts, // Send images to be merged on backend
-                        temperature,
-                        maxOutputTokens,
-                        systemInstruction,
-                    }),
-                });
-
-                if (!response.body) {
-                    throw new Error("No response body received from the server.");
-                }
-
-                // --- Streaming Logic ---
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value, { stream: true });
-                    
-                    if (chunk.startsWith('Error:')) {
-                        // Handle server-side errors
-                        throw new Error(chunk);
-                    }
-
-                    currentAiResponse += chunk;
-
-                    if (firstChunk) {
-                        // Create the message element on the first chunk
-                        aiMessageId = addMessage('ai', currentAiResponse, true);
-                        firstChunk = false;
-                    } else {
-                        // Update the message content for subsequent chunks
-                        const aiElement = document.getElementById(aiMessageId);
-                        if (aiElement) {
-                             // Find the content div inside the message element
-                             const contentDiv = aiElement.querySelector('.prose-invert');
-                             if (contentDiv) {
-                                // Update content using marked for markdown/code highlighting
-                                contentDiv.innerHTML = marked.parse(currentAiResponse);
-                                contentDiv.querySelectorAll('pre code').forEach((block) => {
-                                    hljs.highlightElement(block);
-                                });
-                             }
-                            chatBox.scrollTop = chatBox.scrollHeight;
-                        }
-                    }
-                }
-                
-                // --- Finalizing ---
-                removeLoadingIndicator(aiMessageId);
-                
-                if (currentAiResponse) {
-                    // 3. Add the AI response to history for the next turn
-                    chatHistory.push({ role: 'model', parts: [{ text: currentAiResponse }] });
-                    saveHistory();
-                } else {
-                    throw new Error('Received an empty reply from the backend.');
-                }
-                
-                // Clear all uploaded files after a successful response
-                removeAllFiles();
-
-            } catch (error) {
-                console.error('Backend Error:', error);
-                removeLoadingIndicator(aiMessageId);
-                errorMessage.innerHTML = `<span class="font-bold text-red-400">Error:</span> ${error.message}`;
-                
-                // If an error occurred, remove the last message (the user's message) from history 
-                // to prevent it from being sent again in the next successful request.
-                if (chatHistory.length > 0) {
-                    chatHistory.pop(); 
-                    saveHistory();
-                }
-
-            } finally {
-                setLoadingState(false);
-                chatInput.focus();
-            }
-        }
-
-
-        // --- Event Listeners ---
-        
-        // Settings form submission
-        settingsForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            saveSettings();
-            settingsModal.classList.add('hidden');
-        });
-
-        settingsButton.addEventListener('click', () => {
-            settingsModal.classList.remove('hidden');
-        });
-
-        closeSettingsButton.addEventListener('click', () => {
-            settingsModal.classList.add('hidden');
-        });
-        
-        clearChatButton.addEventListener('click', () => {
-            chatHistory = [];
-            localStorage.removeItem('cortexLumaHistory');
-            chatBox.innerHTML = ''; // Clear chat bubbles
-            removeAllFiles();
-        });
-
-        themeToggleButton.addEventListener('click', toggleTheme);
-
-        // File upload handling
-        fileInput.addEventListener('change', async (e) => {
-            const files = Array.from(e.target.files);
-            if (files.length === 0) return;
-
-            // Clear previous files for simplicity (only one file allowed per prompt)
-            removeAllFiles(); 
-            uploadedImageParts = [];
-
-            for (const file of files) {
-                if (!file.type.startsWith('image/')) {
-                    errorMessage.textContent = `File ${file.name} is not a supported image type.`;
-                    continue;
-                }
-                
-                // Simple validation for large files (e.g., limit to 10MB)
-                const MAX_FILE_SIZE = 10 * 1024 * 1024; 
-                if (file.size > MAX_FILE_SIZE) {
-                    errorMessage.textContent = `File ${file.name} is too large. Max 10MB.`;
-                    continue;
-                }
-                
-                const part = await fileToGenerativePart(file);
-                uploadedImageParts.push(part);
-
-                // Display file information
-                const fileElement = document.createElement('span');
-                fileElement.className = 'inline-flex items-center px-3 py-1 mr-2 text-sm font-medium bg-gray-600 rounded-full text-gray-200';
-                fileElement.innerHTML = `${file.name} <button type="button" onclick="removeAllFiles()" class="ml-2 text-red-400 hover:text-red-300">×</button>`;
-                attachedFilesContainer.appendChild(fileElement);
-            }
-            
-            if (uploadedImageParts.length > 0) {
-                errorMessage.textContent = 'Image attached. Enter your prompt to analyze it.';
-            }
-        });
-
-
-        // CHAT FORM SUBMISSION (UPDATED: Checks for /image command)
-        chatForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const prompt = chatInput.value.trim();
-            
-            // Check for empty prompt/no media
-            if (prompt.length === 0 && uploadedImageParts.length === 0) {
-                 errorMessage.textContent = `Please enter a prompt or attach an image.`;
-                 return;
-            }
-
-            // Check for prompt length limit
-            if (prompt.length > MAX_PROMPT_LENGTH) {
-                 errorMessage.textContent = `Prompt is too long. Max ${MAX_PROMPT_LENGTH} characters.`;
-                 return;
-            }
-            
-            if (!isLoading) {
-                
-                // NEW LOGIC: Check for Freepik image generation command
-                if (prompt.toLowerCase().startsWith('/image')) {
-                    const imagePrompt = prompt.substring(6).trim();
-                    if (imagePrompt.length < 3) {
-                         errorMessage.textContent = `Image prompt is too short. Please provide a description after '/image'.`;
-                         return;
-                    }
-                    
-                    // Add user command to chat before calling the function
-                    addMessage('user', prompt);
-                    
-                    // Call the new image generation function
-                    generateAndDisplayImage(imagePrompt);
-                    
-                } else {
-                    // Original chat logic: Add user message and call Gemini stream
-                    addMessage('user', prompt);
-                    getStreamResponse(prompt);
-                }
-
-
-                chatInput.value = '';
-                chatInput.style.height = 'auto';
-            }
-        });
-        
-        chatInput.addEventListener('input', () => {
-            // Auto-resize textarea
-            chatInput.style.height = 'auto';
-            chatInput.style.height = (chatInput.scrollHeight) + 'px';
-            
-            // Clear error message on typing
-            if (chatInput.value.trim().length > 0) {
-                 errorMessage.textContent = '';
-            }
-        });
-
-        chatInput.addEventListener('keydown', (e) => {
-            // Send on Enter, but allow newline with Shift+Enter
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                chatForm.dispatchEvent(new Event('submit'));
-            }
-        });
-
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', () => {
-            // FEATURE 8: Load Theme
-            const savedTheme = localStorage.getItem('cortexLumaTheme');
-            if (savedTheme === 'light') {
-                toggleTheme(); // Call once to set to light mode if saved
-            }
-
-            loadSettings(); // FEATURE 7: Load model settings
-            loadHistory();  // FEATURE 7: Load chat history
-            chatInput.focus();
-        });
-
     </script>
 </body>
 </html>
