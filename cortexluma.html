@@ -303,7 +303,7 @@
                 chatMessages.innerHTML = `
                     <div class="flex justify-start">
                         <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                            Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once!
+                            Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once! By Vamshi V
                         </div>
                     </div>
                 `;
@@ -322,7 +322,7 @@
 
         function loadSettings() {
             const settings = localStorage.getItem('cortexLumaSettings');
-            const defaultInstruction = "You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Google. You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging.";
+            const defaultInstruction = "You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Vamshi V. From Karnataka Bengaluru My founder is 15 year old . You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging.";
             
             modelSettings = settings ? JSON.parse(settings) : {
                 temperature: 0.7,
