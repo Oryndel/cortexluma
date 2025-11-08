@@ -141,7 +141,6 @@
 
 <body class="fade-page flex min-h-screen">
   
-  <!-- Sidebar -->
   <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0">
     <div class="flex items-center space-x-2 mb-8">
       <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
@@ -169,7 +168,6 @@
     </button>
   </nav>
 
-  <!-- Chat Interface -->
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
       <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
@@ -195,7 +193,6 @@
 
         <textarea id="chat-input" class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden" rows="1" placeholder="Ask a question or upload image(s)..." style="min-height: 44px; max-height: 200px;"></textarea>
         
-        <!-- 🎙️ Added Voice Dictation Button -->
         <button type="button" id="mic-button" class="absolute right-12 bottom-2 bg-slate-600 hover:bg-slate-500 text-white p-2 rounded-full transition" title="Click to speak">
           <svg xmlns="http://www.w3.org/2000/svg" id="mic-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 2a2 2 0 00-2 2v6a2 2 0 104 0V4a2 2 0 00-2-2zm-5 6a1 1 0 012 0 3 3 0 006 0 1 1 0 112 0 5 5 0 01-10 0zm5 7a7 7 0 007-7h-2a5 5 0 01-10 0H3a7 7 0 007 7zm-1 2h2v2h-2v-2z"/>
@@ -210,7 +207,6 @@
     </form>
   </div>
 
-  <!-- ⚙️ Settings Modal -->
   <div id="settings-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50">
     <div class="modal-content w-full max-w-lg p-6 rounded-xl shadow-2xl">
         <div class="flex justify-between items-center mb-4 border-b pb-2 border-indigo-400/50">
@@ -273,7 +269,7 @@
 
 
         // --- CONFIGURATION CONSTANTS ---
-        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        const TEXT_STREAM_URL = "https://cortexluma-backend.vercel.app/"; // MODIFIED FOR VERCEL
         const MAX_IMAGES = 10; // FEATURE 5
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
         const MAX_PROMPT_LENGTH = 10000;
