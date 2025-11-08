@@ -100,6 +100,7 @@
         background-color: var(--code-bg) !important;
         border: 1px solid var(--input-border);
         transition: background-color 0.3s;
+        border-radius: 0.5rem; /* Ensure rounded corners on the code block */
         
         /* --- CRITICAL FIXES FOR CODE BLOCKS --- */
         overflow-x: auto; /* Allows horizontal scrolling */
@@ -295,19 +296,18 @@
 
 
         // --- CONFIGURATION CONSTANTS ---
+        // 🔑 FIX: Corrected URL to use the streaming API endpoint
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
-        const MAX_IMAGES = 10; // FEATURE 5
+        const MAX_IMAGES = 10; 
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
         const MAX_PROMPT_LENGTH = 10000;
-        // --- THIS IS THE FIX ---
-        // The original line had a syntax error (extra ' and missing [ )
         const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp'];
 
         // --- STATE VARIABLES ---
         let isLoading = false;
         let chatHistory = []; 
-        let uploadedImages = []; // FEATURE 5: Array of { base64: string, mimeType: string, filename: string }
-        let modelSettings = {}; // FEATURE 7: Stored in localStorage
+        let uploadedImages = []; 
+        let modelSettings = {}; 
 
         // --- LOCAL STORAGE & INIT (FEATURE 7) ---
 
@@ -556,31 +556,37 @@
             });
         }
         
-        // FEATURE MODIFIED: Code blocks now include a copy button
+        // 🔑 FULLY UPDATED: Code blocks now include a copy button AND language label
         function renderMarkdown(text) {
              let html = text;
-             const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+             // Regex to find fenced code blocks: ```[language]\n[code]```
+             const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g; 
+             
              html = html.replace(codeBlockRegex, (match, lang, code) => {
-                 const language = lang ? lang.trim() : 'plaintext';
-                 const languageClass = `language-${language}`;
+                 // Get the language or default to 'Code'
+                 const language = lang ? lang.trim() : 'Code';
+                 const languageClass = `language-${language.toLowerCase()}`;
                  
-                 // Use a container for relative positioning of the copy button
                  return `
                     <div class="code-container relative mt-3 mb-3">
-                        <div class="absolute top-0 right-0 p-2 text-xs text-slate-400 rounded-tr-lg rounded-bl-lg z-10" style="background-color: var(--input-bg);">
-                            ${language}
+                        
+                        <div class="absolute top-0 right-0 px-2 py-1 text-xs text-indigo-200 rounded-tr-xl rounded-bl-lg z-10 font-mono" style="background-color: var(--ai-bubble); opacity: 0.9;">
+                            ${language.toUpperCase()} 
                         </div>
+
                         <button 
                             class="copy-button absolute top-0 right-0 mt-8 mr-2 px-2 py-1 text-xs text-white bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 z-20"
                             onclick="copyCode(this)"
                         >
                             Copy
                         </button>
-                        <pre><code class="${languageClass}">${code.trim()}</code></pre>
+                        
+                        <pre style="padding-top: 30px;"><code class="${languageClass}">${code.trim()}</code></pre>
                     </div>
                  `;
              });
 
+             // Simple Markdown replacements for bold, inline code, and lists
              html = html
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/`(.*?)`/g, '<code class="px-1 py-0.5 rounded text-xs" style="background-color: var(--user-bubble); color: #facc15;">$1</code>')
