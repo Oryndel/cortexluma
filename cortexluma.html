@@ -67,6 +67,20 @@
       border: 1px solid var(--shadow-color);
       transition: background-color 0.3s, border-color 0.3s;
     }
+    
+    /* 🔑 FIX: Ensure all content inside the chat bubble respects its maximum width */
+    .ai-bubble { 
+        background-color: var(--ai-bubble); 
+        color: white; 
+        /* The main fix is applied here: allowing the content to shrink inside max-w-xl */
+        overflow-wrap: break-word; 
+    }
+    .user-bubble { 
+        background-color: var(--user-bubble); 
+        color: var(--text-color); 
+        overflow-wrap: break-word;
+    }
+
 
     #chat-input {
       background-color: var(--input-bg);
@@ -81,14 +95,25 @@
         transition: background-color 0.3s, border-color 0.3s;
     }
 
+    /* 🔑 FIX: Code containers must have horizontal scrolling for long lines (like Pi) */
     .code-container pre {
         background-color: var(--code-bg) !important;
         border: 1px solid var(--input-border);
         transition: background-color 0.3s;
+        
+        /* --- CRITICAL FIXES FOR CODE BLOCKS --- */
+        overflow-x: auto; /* Allows horizontal scrolling */
+        white-space: pre; /* Preserves whitespace */
+        word-break: normal; /* Prevents unwanted breaking of code */
+        word-wrap: normal;
+        /* --- END CRITICAL FIXES --- */
     }
     
-    .ai-bubble { background-color: var(--ai-bubble); color: white; }
-    .user-bubble { background-color: var(--user-bubble); color: var(--text-color); }
+    /* 🔑 FIX: Inline code tags must also break if they are exceptionally long */
+    .ai-bubble code {
+        word-break: break-all;
+        white-space: normal; 
+    }
 
     .modal-overlay { background-color: rgba(0, 0, 0, 0.7); }
     .modal-content {
@@ -106,36 +131,37 @@
     }
     @keyframes typing { from { width: 0 } to { width: 15ch } }
     @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: white; } }
+    
     /* 🎙️ Dictation Mic Animations */
-#mic-button {
-  transition: all 0.3s ease;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-}
-#mic-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-}
+    #mic-button {
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    #mic-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
 
-/* Mic idle pulse */
-@keyframes micIdlePulse {
-  0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-  50% { box-shadow: 0 0 18px rgba(99, 102, 241, 0.6); }
-  100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-}
-#mic-button:not(.recording) {
-  animation: micIdlePulse 2.5s infinite ease-in-out;
-}
+    /* Mic idle pulse */
+    @keyframes micIdlePulse {
+      0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+      50% { box-shadow: 0 0 18px rgba(99, 102, 241, 0.6); }
+      100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+    }
+    #mic-button:not(.recording) {
+      animation: micIdlePulse 2.5s infinite ease-in-out;
+    }
 
-/* Mic active recording pulse (red glow) */
-@keyframes micRecordingPulse {
-  0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
-  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); transform: scale(1.15); }
-  100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
-}
-#mic-button.recording {
-  background-color: #ef4444 !important;
-  animation: micRecordingPulse 1.2s infinite ease-in-out;
-}
+    /* Mic active recording pulse (red glow) */
+    @keyframes micRecordingPulse {
+      0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
+      50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); transform: scale(1.15); }
+      100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
+    }
+    #mic-button.recording {
+      background-color: #ef4444 !important;
+      animation: micRecordingPulse 1.2s infinite ease-in-out;
+    }
   </style>
 </head>
 
@@ -269,8 +295,7 @@
 
 
         // --- CONFIGURATION CONSTANTS ---
-        // 🚨 FIX APPLIED HERE: POINTING TO VERCEL BACKEND API 🚨
-        const TEXT_STREAM_URL = "https://cortexluma-backend.vercel.app/api/stream-chat"; 
+        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
         const MAX_IMAGES = 10; // FEATURE 5
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
         const MAX_PROMPT_LENGTH = 10000;
@@ -806,95 +831,6 @@
         });
 
 
-  // --- VOICE DICTATION FEATURE (complete) ---
-  // Uses Web Speech API (Chrome/Edge). Falls back gracefully if unsupported.
-  (function initDictation() {
-      let recognizing = false;
-      let recognition = null;
-      const micButton = document.getElementById('mic-button');
-      const micIcon = document.getElementById('mic-icon');
-
-      // Support both standard and webkit prefixed versions
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-      if (!SpeechRecognition) {
-          // If unsupported, disable mic button and show a tooltip
-          if (micButton) {
-              micButton.title = 'Speech recognition not supported in this browser';
-              micButton.disabled = true;
-              micButton.style.opacity = '0.6';
-          }
-          return;
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN'; // change as needed (en-US, hi-IN, etc.)
-      recognition.continuous = false; // stop automatically after pause
-      recognition.interimResults = true; // show interim results while speaking
-
-      recognition.onstart = () => {
-          recognizing = true;
-          if (micButton) micButton.style.backgroundColor = '#ef4444'; // red while listening
-          // optional: change icon to show recording (you can swap SVG or styles)
-      };
-
-      recognition.onresult = (event) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-              transcript += event.results[i][0].transcript;
-          }
-          // Put interim/final transcript into the chat input
-          chatInput.value = transcript;
-          chatInput.style.height = 'auto';
-          chatInput.style.height = (chatInput.scrollHeight) + 'px';
-          // Clear error message if any
-          errorMessage.textContent = '';
-      };
-
-      recognition.onerror = (event) => {
-          console.error('Speech recognition error:', event);
-          recognizing = false;
-          if (micButton) micButton.style.backgroundColor = '#475569';
-          // Show a friendly error
-          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-              errorMessage.textContent = 'Microphone access was blocked. Allow microphone and try again.';
-          } else {
-              errorMessage.textContent = 'Speech recognition error. Try again.';
-          }
-      };
-
-      recognition.onend = () => {
-          // Called when speech recognition service disconnects (user stopped speaking or stopped)
-          recognizing = false;
-          if (micButton) micButton.style.backgroundColor = '#475569';
-      };
-
-      micButton.addEventListener('click', () => {
-          if (!recognition) {
-              alert('Speech recognition not supported in this browser.');
-              return;
-          }
-          // Toggle start/stop
-          if (recognizing) {
-              recognition.stop();
-              recognizing = false;
-              if (micButton) micButton.style.backgroundColor = '#475569';
-          } else {
-              try {
-                  recognition.start();
-              } catch (err) {
-                  // Some browsers throw if start is called while already running
-                  console.warn('Speech recognition start error:', err);
-              }
-          }
-      });
-
-      // Optional: stop recognition when navigating away or on form submit to avoid leaks
-      window.addEventListener('beforeunload', () => {
-          if (recognition && recognizing) recognition.stop();
-      });
-
-  })();
-
   // --- 🎙️ VOICE DICTATION FEATURE with animations ---
 (function initDictation() {
   let recognizing = false;
@@ -962,10 +898,6 @@
     if (recognition && recognizing) recognition.stop();
   });
 })();
-
-  </script>
-</body>
-</html>
 
   </script>
 </body>
