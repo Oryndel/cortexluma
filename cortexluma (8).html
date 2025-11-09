@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CortexLuma AI - Real-Time Multi-Modal Chat 📸</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <style>
+    /* BASE VARIABLES (FEATURE 8: Theme Toggle) */
+    :root {
+        --bg-start: #0f172a;
+        --bg-end: #1e293b;
+        --text-color: #e2e8f0;
+        --chat-box-bg: rgba(15, 23, 42, 0.8);
+        --input-bg: #1e293b;
+        --input-border: #334155;
+        --ai-bubble: #4f46e5;
+        --user-bubble: #334155;
+        --code-bg: #1e293b;
+        --sidebar-bg: #0f172a;
+        --shadow-color: rgba(99,102,241,0.15);
+    }
+    
+    /* LIGHT MODE (FEATURE 8: Theme Toggle) */
+    .light-mode {
+        --bg-start: #f8fafc;
+        --bg-end: #e2e8f0;
+        --text-color: #1e293b;
+        --chat-box-bg: rgba(255, 255, 255, 0.95);
+        --input-bg: #ffffff;
+        --input-border: #cbd5e1;
+        --ai-bubble: #4f46e5;
+        --user-bubble: #e2e8f0;
+        --code-bg: #f1f5f9;
+        --sidebar-bg: #ffffff;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); 
+      color: var(--text-color);
+      overflow-x: hidden; 
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-bubble { animation: fadeInUp 0.3s ease; }
+
+    .chat-box {
+      background-color: var(--chat-box-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--shadow-color);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    
+    /* 🔑 FIX: Ensure all content inside the chat bubble respects its maximum width */
+    .ai-bubble { 
+        background-color: var(--ai-bubble); 
+        color: white; 
+        /* The main fix is applied here: allowing the content to shrink inside max-w-xl */
+        overflow-wrap: break-word; 
+    }
+    .user-bubble { 
+        background-color: var(--user-bubble); 
+        color: var(--text-color); 
+        overflow-wrap: break-word;
+    }
+
+
+    #chat-input {
+      background-color: var(--input-bg);
+      border-color: var(--input-border);
+      color: var(--text-color);
+    }
+    .light-mode #chat-input::placeholder { color: #64748b; }
+
+    .sidebar {
+        background-color: var(--sidebar-bg);
+        border-right-color: var(--input-border);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    /* 🔑 FIX: Code containers must have horizontal scrolling for long lines (like Pi) */
+    .code-container pre {
+        background-color: var(--code-bg) !important;
+        border: 1px solid var(--input-border);
+        transition: background-color 0.3s;
+        border-radius: 0.5rem; /* Ensure rounded corners on the code block */
+        
+        /* --- CRITICAL FIXES FOR CODE BLOCKS --- */
+        overflow-x: auto; /* Allows horizontal scrolling */
+        white-space: pre; /* Preserves whitespace */
+        word-break: normal; /* Prevents unwanted breaking of code */
+        word-wrap: normal;
+        /* --- END CRITICAL FIXES --- */
+    }
+    
+    /* 🔑 FIX: Inline code tags must also break if they are exceptionally long */
+    .ai-bubble code {
+        word-break: break-all;
+        white-space: normal; 
+    }
+
+    .modal-overlay { background-color: rgba(0, 0, 0, 0.7); }
+    .modal-content {
+        background-color: var(--input-bg);
+        border: 1px solid var(--input-border);
+        color: var(--text-color);
+    }
+
+    .typewriter-placeholder {
+        overflow: hidden; 
+        white-space: nowrap; 
+        border-right: 3px solid white; 
+        width: 15ch;
+        animation: typing 1.5s steps(15) infinite, blink-caret 0.75s step-end infinite;
+    }
+    @keyframes typing { from { width: 0 } to { width: 15ch } }
+    @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: white; } }
+    
+    /* 🎙️ Dictation Mic Animations */
+    #mic-button {
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    #mic-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Mic idle pulse */
+    @keyframes micIdlePulse {
+      0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+      50% { box-shadow: 0 0 18px rgba(99, 102, 241, 0.6); }
+      100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+    }
+    #mic-button:not(.recording) {
+      animation: micIdlePulse 2.5s infinite ease-in-out;
+    }
+
+    /* Mic active recording pulse (red glow) */
+    @keyframes micRecordingPulse {
+      0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
+      50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); transform: scale(1.15); }
+      100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
+    }
+    #mic-button.recording {
+      background-color: #ef4444 !important;
+      animation: micRecordingPulse 1.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="fade-page flex min-h-screen">
+  
+  <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0">
+    <div class="flex items-center space-x-2 mb-8">
+      <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
+      <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
+    </div>
+
+    <button id="new-chat-button" onclick="newChat()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+      <span>New Chat</span>
+    </button>
+    
+    <button id="settings-button" onclick="openSettingsModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+      <span>Settings</span>
+    </button>
+    
+    <button id="theme-toggle-button" onclick="toggleTheme()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300">
+      <span id="theme-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg></span>
+      <span id="theme-text">Light Mode</span>
+    </button>
+
+    <button id="clear-history-button" onclick="clearHistory()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" /></svg>
+      <span>Clear History</span>
+    </button>
+  </nav>
+
+  <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
+    <header class="text-center mb-4 flex-shrink-0">
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
+      <p class="text-slate-400 mt-1">Real-time chat, <b>multi-image</b> 📸 analysis, and <b>custom AI personality</b>. Check the settings panel!</p>
+    </header>
+
+    <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl"></div>
+
+    <form id="chat-form" class="flex flex-col space-y-2 flex-shrink-0">
+      <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 rounded-lg border border-slate-700" style="background-color: var(--input-bg);">
+        <span id="image-count-text" class="text-sm font-semibold text-indigo-400">0 Images</span>
+        <div id="image-previews" class="flex space-x-2 overflow-x-auto p-1"></div>
+        <button type="button" onclick="removeAllImages()" class="text-red-400 hover:text-red-300 transition flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+        </button>
+      </div>
+      
+      <div class="relative flex items-center">
+        <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" multiple class="hidden" onchange="previewImages(event)">
+        <button type="button" id="image-upload-button" onclick="document.getElementById('file-input').click()" class="p-2 rounded-full text-white mr-2 transition duration-150" style="background-color: #475569;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-3v2z" clip-rule="evenodd" /></svg>
+        </button>
+
+        <textarea id="chat-input" class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden" rows="1" placeholder="Ask a question or upload image(s)..." style="min-height: 44px; max-height: 200px;"></textarea>
+        
+        <button type="button" id="mic-button" class="absolute right-12 bottom-2 bg-slate-600 hover:bg-slate-500 text-white p-2 rounded-full transition" title="Click to speak">
+          <svg xmlns="http://www.w3.org/2000/svg" id="mic-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a2 2 0 00-2 2v6a2 2 0 104 0V4a2 2 0 00-2-2zm-5 6a1 1 0 012 0 3 3 0 006 0 1 1 0 112 0 5 5 0 01-10 0zm5 7a7 7 0 007-7h-2a5 5 0 01-10 0H3a7 7 0 007 7zm-1 2h2v2h-2v-2z"/>
+          </svg>
+        </button>
+
+        <button type="submit" id="send-button" class="absolute right-3 bottom-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>
+        </button>
+      </div>
+      <div id="error-message" class="text-red-400 text-sm h-4"></div>
+    </form>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50">
+    <div class="modal-content w-full max-w-lg p-6 rounded-xl shadow-2xl">
+        <div class="flex justify-between items-center mb-4 border-b pb-2 border-indigo-400/50">
+            <h3 class="text-xl font-bold text-indigo-400">Model Configuration Settings</h3>
+            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        <div class="mb-4">
+            <label for="temperature-slider" class="block text-sm font-medium mb-1">
+                Creativity (Temperature): <span id="temperature-value" class="font-bold text-indigo-300">0.7</span>
+            </label>
+            <input type="range" id="temperature-slider" min="0" max="1" step="0.1" value="0.7" 
+                   class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer range-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <p class="text-xs text-slate-400 mt-1">Lower value is more deterministic/factual (0.0), higher is more creative (1.0).</p>
+        </div>
+
+        <div class="mb-4">
+            <label for="max-tokens-input" class="block text-sm font-medium mb-1">
+                Maximum Response Length (Tokens):
+            </label>
+            <input type="number" id="max-tokens-input" min="128" max="4096" step="128" value="2048"
+                   class="w-full p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);">
+            <p class="text-xs text-slate-400 mt-1">The maximum number of tokens the model can generate (max 4096).</p>
+        </div>
+
+        <div class="mb-4">
+            <label for="system-instruction-textarea" class="block text-sm font-medium mb-1">
+                AI Personality / System Instruction:
+            </label>
+            <textarea id="system-instruction-textarea" rows="3"
+                      class="w-full p-2 border rounded-lg resize-none focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);"></textarea>
+            <p class="text-xs text-slate-400 mt-1">Define the AI's role, tone, and constraints.</p>
+        </div>
+
+        <button onclick="saveSettings(); closeSettingsModal()" 
+                class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition">
+            Save Settings
+        </button>
+    </div>
+  </div>
+    
+  <script>
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const errorMessage = document.getElementById('error-message');
+        const sendButton = document.getElementById('send-button');
+        const fileInput = document.getElementById('file-input');
+        const imagePreviews = document.getElementById('image-previews');
+        const imageCountText = document.getElementById('image-count-text');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const themeToggleButton = document.getElementById('theme-toggle-button');
+        const settingsModal = document.getElementById('settings-modal');
+        const temperatureSlider = document.getElementById('temperature-slider');
+        const temperatureValueDisplay = document.getElementById('temperature-value');
+        const maxTokensInput = document.getElementById('max-tokens-input');
+        const systemInstructionTextarea = document.getElementById('system-instruction-textarea');
+
+
+        // --- CONFIGURATION CONSTANTS ---
+        // 🔑 FIX: Corrected URL to use the streaming API endpoint
+        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        const MAX_IMAGES = 10; 
+        const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
+        const MAX_PROMPT_LENGTH = 10000;
+        const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp'];
+
+        // --- STATE VARIABLES ---
+        let isLoading = false;
+        let chatHistory = []; 
+        let uploadedImages = []; 
+        let modelSettings = {}; 
+
+        // --- LOCAL STORAGE & INIT (FEATURE 7) ---
+
+        function saveHistory() {
+            localStorage.setItem('cortexLumaHistory', JSON.stringify(chatHistory));
+        }
+
+        function loadHistory() {
+            const history = localStorage.getItem('cortexLumaHistory');
+            if (history) {
+                chatHistory = JSON.parse(history);
+                renderHistory();
+            } else {
+                 // Initial welcome message if no history found
+                chatMessages.innerHTML = `
+                    <div class="flex justify-start">
+                        <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
+                            Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once! By Vamshi V
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // FEATURE 7, 6: Save and Load Settings
+        function saveSettings() {
+            modelSettings = {
+                temperature: parseFloat(temperatureSlider.value),
+                maxOutputTokens: parseInt(maxTokensInput.value),
+                systemInstruction: systemInstructionTextarea.value.trim(),
+            };
+            localStorage.setItem('cortexLumaSettings', JSON.stringify(modelSettings));
+        }
+
+        function loadSettings() {
+            const settings = localStorage.getItem('cortexLumaSettings');
+            const defaultInstruction = "You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Vamshi V. From Karnataka Bengaluru My founder is 15 year old . You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging.";
+            
+            modelSettings = settings ? JSON.parse(settings) : {
+                temperature: 0.7,
+                maxOutputTokens: 2048,
+                systemInstruction: defaultInstruction,
+            };
+
+            // Apply loaded settings to the modal controls
+            temperatureSlider.value = modelSettings.temperature;
+            temperatureValueDisplay.textContent = modelSettings.temperature;
+            maxTokensInput.value = modelSettings.maxOutputTokens;
+            systemInstructionTextarea.value = modelSettings.systemInstruction || defaultInstruction;
+        }
+
+        // --- CORE UI & STATE FUNCTIONS ---
+
+        function setLoadingState(state) {
+            isLoading = state;
+            sendButton.disabled = state;
+            chatInput.disabled = state;
+            fileInput.disabled = state;
+            errorMessage.textContent = '';
+            // Change button icon to loading spinner if streaming
+            sendButton.innerHTML = state 
+                ? '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>'
+                : '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>';
+        }
+        
+        function clearHistory() {
+             if (chatHistory.length > 0) {
+                if (!confirm("Are you sure you want to clear the conversation history? This will also clear local storage.")) {
+                    return;
+                }
+            }
+            chatHistory = [];
+            localStorage.removeItem('cortexLumaHistory'); // FEATURE 7: Clear Local Storage
+            chatMessages.innerHTML = `
+              <div class="flex justify-start">
+                <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
+                  Conversation history cleared! I'm ready for new questions or multi-image analysis.
+                </div>
+              </div>
+            `;
+            chatInput.focus();
+            errorMessage.textContent = '';
+            removeAllImages(); 
+        }
+        
+        function newChat() {
+            clearHistory();
+        }
+
+        // --- FEATURE 8: Theme Toggle ---
+        function toggleTheme() {
+            const isDarkMode = document.body.classList.contains('light-mode');
+            if (isDarkMode) {
+                document.body.classList.remove('light-mode');
+                localStorage.setItem('cortexLumaTheme', 'dark');
+                document.getElementById('theme-icon').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg>';
+                document.getElementById('theme-text').textContent = 'Light Mode';
+                document.querySelector('link[href*="atom-one-dark"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+            } else {
+                document.body.classList.add('light-mode');
+                localStorage.setItem('cortexLumaTheme', 'light');
+                document.getElementById('theme-icon').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 00-.707-.293h-4a1 1 0 000 2h4a1 1 0 00.707-.293l.707-.707a1 1 0 00-1.414-1.414zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zM7 16a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-3.293-4.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707z" clip-rule="evenodd" /></svg>';
+                document.getElementById('theme-text').textContent = 'Dark Mode';
+                document.querySelector('link[href*="atom-one-dark"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
+            }
+        }
+
+        // --- FEATURE 6: Settings Modal Functions ---
+        function openSettingsModal() {
+            loadSettings(); // Ensure the latest saved settings are loaded into the controls
+            settingsModal.style.display = 'flex';
+        }
+
+        function closeSettingsModal() {
+            settingsModal.style.display = 'none';
+        }
+        
+        temperatureSlider.addEventListener('input', (e) => {
+            temperatureValueDisplay.textContent = e.target.value;
+        });
+        
+        // --- FEATURE 5: Multi-Image Handling ---
+
+        function previewImages(event) {
+            const files = Array.from(event.target.files);
+            
+            // Clear current images if new files are selected
+            uploadedImages = [];
+            imagePreviews.innerHTML = '';
+
+            if (files.length === 0) {
+                removeAllImages();
+                return;
+            }
+
+            if (files.length > MAX_IMAGES) {
+                errorMessage.textContent = `Error: Maximum ${MAX_IMAGES} images allowed.`;
+                fileInput.value = '';
+                removeAllImages();
+                return;
+            }
+
+            let validImagesCount = 0;
+
+            files.slice(0, MAX_IMAGES).forEach(file => {
+                if (file.size > MAX_FILE_SIZE) {
+                    errorMessage.textContent = `Error: Image '${file.name}' exceeds 4MB limit and was skipped.`;
+                    return;
+                }
+                
+                if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+                    errorMessage.textContent = `Error: Image '${file.name}' has unsupported type (${file.type}) and was skipped.`;
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64String = e.target.result.split(',')[1];
+                    const mimeType = file.type;
+
+                    const imageObject = {
+                        base64: base64String,
+                        mimeType: mimeType,
+                        filename: file.name
+                    };
+                    
+                    uploadedImages.push(imageObject);
+                    validImagesCount++;
+
+                    // Render preview thumbnail
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = file.name;
+                    img.className = 'uploaded-image-preview w-20 h-20 object-cover rounded shadow-md';
+                    imagePreviews.appendChild(img);
+
+                    // Update count when rendering is complete
+                    imageCountText.textContent = `${validImagesCount} Images`;
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            imagePreviewContainer.classList.remove('hidden');
+            errorMessage.textContent = '';
+            chatInput.focus();
+        }
+        
+        function removeAllImages() {
+            uploadedImages = [];
+            imagePreviewContainer.classList.add('hidden');
+            imagePreviews.innerHTML = '';
+            imageCountText.textContent = '0 Images';
+            fileInput.value = ''; 
+        }
+
+        function base64ToGenerativePart(base64, mimeType) {
+            return {
+                inlineData: {
+                    data: base64,
+                    mimeType: mimeType
+                }
+            };
+        }
+
+
+        // --- UI Rendering Functions ---
+
+        // Render existing history from local storage
+        function renderHistory() {
+            chatMessages.innerHTML = '';
+            chatHistory.forEach(message => {
+                const isUser = message.role === 'user';
+                
+                // Get the text part (the last part is usually the text)
+                const textPart = message.parts.find(p => p.text) || { text: '' };
+                
+                // Get the image parts (if any)
+                const imageParts = message.parts.filter(p => p.inlineData);
+                
+                addUserMessageToUI(textPart.text, imageParts, isUser);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+
+        // FEATURE 10 (Part of Response Timing/Token Count): Token Estimator
+        // Very rough estimate based on 4 chars/token heuristic
+        function estimateTokens(text) {
+            return Math.ceil(text.length / 4);
+        }
+
+        // Code Copy Function
+        window.copyCode = function(button) {
+            const codeBlock = button.closest('.code-container').querySelector('code');
+            const code = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 13.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Copied!';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                button.innerHTML = 'Error';
+            });
+        }
+        
+        // 🔑 FULLY UPDATED: Code blocks now include a copy button AND language label
+        function renderMarkdown(text) {
+             let html = text;
+             // Regex to find fenced code blocks: ```[language]\n[code]```
+             const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g; 
+             
+             html = html.replace(codeBlockRegex, (match, lang, code) => {
+                 // Get the language or default to 'Code'
+                 const language = lang ? lang.trim() : 'Code';
+                 const languageClass = `language-${language.toLowerCase()}`;
+                 
+                 return `
+                    <div class="code-container relative mt-3 mb-3">
+                        
+                        <div class="absolute top-0 right-0 px-2 py-1 text-xs text-indigo-200 rounded-tr-xl rounded-bl-lg z-10 font-mono" style="background-color: var(--ai-bubble); opacity: 0.9;">
+                            ${language.toUpperCase()} 
+                        </div>
+
+                        <button 
+                            class="copy-button absolute top-0 right-0 mt-8 mr-2 px-2 py-1 text-xs text-white bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 z-20"
+                            onclick="copyCode(this)"
+                        >
+                            Copy
+                        </button>
+                        
+                        <pre style="padding-top: 30px;"><code class="${languageClass}">${code.trim()}</code></pre>
+                    </div>
+                 `;
+             });
+
+             // Simple Markdown replacements for bold, inline code, and lists
+             html = html
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`(.*?)`/g, '<code class="px-1 py-0.5 rounded text-xs" style="background-color: var(--user-bubble); color: #facc15;">$1</code>')
+                .replace(/\n/g, '<br>'); 
+
+             html = html.replace(/<br>\s*(-|\*)\s/g, '<br><span class="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-2 flex-shrink-0 align-middle"></span>');
+
+             return html;
+        }
+        
+
+
+        // Renders User Message (and can be used to render history messages)
+        function addUserMessageToUI(prompt, imageArray, isHistory = false) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex justify-${isHistory ? 'start' : 'end'}`;
+
+            const messageBubble = document.createElement('div');
+            // If it's a history item, render with markdown immediately
+            if (isHistory) {
+                messageBubble.innerHTML = renderMarkdown(prompt);
+            } else {
+                messageBubble.innerHTML = prompt || (imageArray.length > 0 ? 'Analyzing uploaded image(s)...' : '');
+            }
+
+            messageBubble.className = `p-3 rounded-xl rounded-${isHistory ? 'tl' : 'br'}-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble ${isHistory ? 'ai-bubble' : 'user-bubble'}`;
+            
+            // Add image previews if available
+            if (imageArray && imageArray.length > 0) {
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'flex space-x-2 mt-2 flex-wrap';
+                
+                imageArray.forEach(image => {
+                    // Extract base64 from the GenerativePart structure
+                    const base64 = isHistory ? image.inlineData.data : image.base64; 
+                    const mimeType = isHistory ? image.inlineData.mimeType : image.mimeType;
+
+                    const img = document.createElement('img');
+                    img.src = `data:${mimeType};base64,${base64}`;
+                    img.className = 'uploaded-image-preview w-20 h-20 object-cover';
+                    previewContainer.appendChild(img);
+                });
+                
+                messageBubble.appendChild(previewContainer);
+            }
+            
+            // Apply Syntax Highlighting for history items
+            if (isHistory) {
+                messageBubble.querySelectorAll('.code-container pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            }
+
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Creates the streaming AI message container
+        function addModelStreamMessage() {
+            const startTime = Date.now(); // FEATURE 10: Start timer
+            
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex justify-start';
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble';
+            
+            // FEATURE 9: Typewriter loading effect
+            messageBubble.innerHTML = `<div class="typewriter-placeholder">Thinking...</div>`;
+
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            let fullResponseText = '';
+
+            return (chunk, isDone) => {
+                const placeholder = messageBubble.querySelector('.typewriter-placeholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+
+                // If chunk is not empty, append text and update scroll
+                if (chunk) {
+                    fullResponseText += chunk;
+                    messageBubble.innerText = fullResponseText; 
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                // FEATURE 10: Final timing/token display on completion
+                if (isDone) {
+                    const endTime = Date.now();
+                    const durationMs = endTime - startTime;
+                    const durationSeconds = (durationMs / 1000).toFixed(2);
+                    const tokenCount = estimateTokens(fullResponseText);
+                    
+                    const footer = document.createElement('div');
+                    footer.className = 'text-xs text-indigo-200 mt-2 pt-2 border-t border-indigo-400/50';
+                    footer.innerHTML = `Time: ${durationSeconds}s | Est. Tokens: ${tokenCount}`;
+                    
+                    // 5. FINAL STEP: Re-render the final response with full markdown
+                    const finalBubble = chatMessages.lastChild.querySelector('div:nth-child(1)'); // Target the bubble div
+                    finalBubble.innerHTML = renderMarkdown(fullResponseText);
+                    finalBubble.appendChild(footer); // Re-append the footer
+                    
+                    // Apply Syntax Highlighting
+                    finalBubble.querySelectorAll('.code-container pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+            };
+        }
+
+
+        // --- Main Chat Logic ---
+        async function getStreamResponse(prompt) {
+            setLoadingState(true);
+            
+            // 1. Add user message to UI
+            const userImageParts = uploadedImages.map(img => ({inlineData: base64ToGenerativePart(img.base64, img.mimeType).inlineData, base64: img.base64, mimeType: img.mimeType}));
+            addUserMessageToUI(prompt, userImageParts, false);
+
+            // 2. Prepare payload for the server
+            const imagePartsForServer = uploadedImages.map(img => base64ToGenerativePart(img.base64, img.mimeType));
+            
+            // 3. Add the new user message to history for server processing
+            chatHistory.push({ role: "user", parts: [{ text: prompt }, ...imagePartsForServer] }); 
+
+            // 4. Prepare a dedicated container for the streaming response
+            const responseWriter = addModelStreamMessage();
+            let fullResponseText = '';
+
+            try {
+                const response = await fetch(TEXT_STREAM_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        history: chatHistory, 
+                        imageParts: imagePartsForServer,
+                        // FEATURE 1, 2, 3: Send model settings
+                        temperature: modelSettings.temperature,
+                        maxOutputTokens: modelSettings.maxOutputTokens,
+                        systemInstruction: modelSettings.systemInstruction,
+                    }),
+                });
+
+                if (!response.ok || !response.body) {
+                    const errorText = await response.text();
+                    throw new Error(`API Status ${response.status}: ${errorText || 'Request failed to connect to the backend server.'}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                let done = false;
+                while (!done) {
+                    const { value, done: doneReading } = await reader.read();
+                    done = doneReading;
+                    const chunk = decoder.decode(value, { stream: !done });
+                    
+                    if (chunk) {
+                        responseWriter(chunk, false); // Stream in chunks
+                        fullResponseText += chunk;
+                    }
+                }
+                
+                responseWriter(null, true); // Final call to update timing/tokens and re-render markdown
+
+                // 6. Update history with the complete model response
+                chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
+                saveHistory(); // FEATURE 7: Save history
+
+            } catch (error) {
+                console.error('Frontend Error:', error);
+                
+                // Remove the last user message and the streaming placeholder
+                if (chatMessages.lastChild) {
+                    chatMessages.lastChild.remove(); 
+                }
+                if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+                    chatHistory.pop(); 
+                    if(chatMessages.lastChild) chatMessages.lastChild.remove(); // Remove user message
+                }
+                
+                errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${error.message}`;
+            } finally {
+                setLoadingState(false);
+                removeAllImages(); 
+                chatInput.focus();
+            }
+        }
+        
+
+        // --- Event Listeners ---
+        
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const prompt = chatInput.value.trim();
+            
+            if (!prompt && uploadedImages.length === 0) {
+                 errorMessage.textContent = "Please enter a message or upload image(s).";
+                 return;
+            }
+            if (prompt.length > MAX_PROMPT_LENGTH) {
+                 errorMessage.textContent = `Message is too long. Max ${MAX_PROMPT_LENGTH} characters.`;
+                 return;
+            }
+            
+            if (!isLoading) {
+                getStreamResponse(prompt);
+
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+            }
+        });
+        
+        chatInput.addEventListener('input', () => {
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            chatInput.style.height = (chatInput.scrollHeight) + 'px';
+            
+            // Clear error message on typing
+            if (chatInput.value.trim().length > 0) {
+                 errorMessage.textContent = '';
+            }
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            // Send on Enter, but allow newline with Shift+Enter
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // FEATURE 8: Load Theme
+            const savedTheme = localStorage.getItem('cortexLumaTheme');
+            if (savedTheme === 'light') {
+                toggleTheme(); // Call once to set to light mode if saved
+            }
+
+            loadSettings(); // FEATURE 7: Load model settings
+            loadHistory();  // FEATURE 7: Load chat history
+            chatInput.focus();
+        });
+
+
+  // --- 🎙️ VOICE DICTATION FEATURE with animations ---
+(function initDictation() {
+  let recognizing = false;
+  let recognition = null;
+  const micButton = document.getElementById('mic-button');
+  const micIcon = document.getElementById('mic-icon');
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  if (!SpeechRecognition) {
+    micButton.title = 'Speech recognition not supported';
+    micButton.disabled = true;
+    micButton.style.opacity = '0.5';
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    recognizing = true;
+    micButton.classList.add('recording');
+  };
+
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    chatInput.value = transcript;
+    chatInput.style.height = 'auto';
+    chatInput.style.height = chatInput.scrollHeight + 'px';
+    errorMessage.textContent = '';
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event);
+    recognizing = false;
+    micButton.classList.remove('recording');
+    if (event.error === 'not-allowed') {
+      errorMessage.textContent = 'Mic access blocked. Allow and retry.';
+    } else {
+      errorMessage.textContent = 'Speech recognition error.';
+    }
+  };
+
+  recognition.onend = () => {
+    recognizing = false;
+    micButton.classList.remove('recording');
+  };
+
+  micButton.addEventListener('click', () => {
+    if (!recognition) return;
+    if (recognizing) {
+      recognition.stop();
+      recognizing = false;
+      micButton.classList.remove('recording');
+    } else {
+      recognition.start();
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (recognition && recognizing) recognition.stop();
+  });
+})();
+
+  </script>
+</body>
+</html>
