@@ -13,24 +13,29 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <style>
+    /* ------------------------------------------------------------------ */
+    /* 🌟 MAXED CSS & ANIMATION IMPLEMENTATION START 🌟 */
+    /* ------------------------------------------------------------------ */
+    
     /* BASE VARIABLES (FEATURE 8: Theme Toggle) */
     :root {
-        --bg-start: #0f172a;
-        --bg-end: #1e293b;
+        --bg-start: #060e22; /* Darker Start */
+        --bg-end: #111a30;   /* Darker End */
         --text-color: #e2e8f0;
         --chat-box-bg: rgba(15, 23, 42, 0.8);
         --input-bg: #1e293b;
         --input-border: #334155;
-        --ai-bubble: #4f46e5;
-        --user-bubble: #334155;
-        --code-bg: #1e293b;
-        --sidebar-bg: #0f172a;
-        --shadow-color: rgba(99,102,241,0.15);
+        --ai-bubble: #4f46e5; /* Indigo */
+        --user-bubble: #334155; /* Slate */
+        --code-bg: #111a30;
+        --sidebar-bg: #060e22;
+        --shadow-color: rgba(79, 70, 229, 0.5); /* Strong Indigo Glow */
+        --neon-glow: 0 0 5px #4f46e5, 0 0 10px #4f46e5;
     }
     
     /* LIGHT MODE (FEATURE 8: Theme Toggle) */
     .light-mode {
-        --bg-start: #f8fafc;
+        --bg-start: #f0f4f8;
         --bg-end: #e2e8f0;
         --text-color: #1e293b;
         --chat-box-bg: rgba(255, 255, 255, 0.95);
@@ -40,7 +45,8 @@
         --user-bubble: #e2e8f0;
         --code-bg: #f1f5f9;
         --sidebar-bg: #ffffff;
-        --shadow-color: rgba(0, 0, 0, 0.1);
+        --shadow-color: rgba(79, 70, 229, 0.2);
+        --neon-glow: 0 0 3px rgba(79, 70, 229, 0.5);
     }
 
     body {
@@ -48,177 +54,217 @@
       background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); 
       color: var(--text-color);
       overflow-x: hidden; 
-      transition: background-color 0.3s, color 0.3s;
+      transition: background-color 0.5s, color 0.5s;
     }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; }
-    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* --- ANIMATION KEYFRAMES --- */
+    
+    /* Maxed Chat Bubble Entrance */
+    @keyframes bubble-entrance {
+      from { opacity: 0; transform: translateY(20px) scale(0.9); filter: blur(5px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
-    .chat-bubble { animation: fadeInUp 0.3s ease; }
+    .chat-bubble { 
+        animation: bubble-entrance 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .chat-bubble:hover {
+        transform: translateY(-2px) scale(1.01); /* Subtle lift on hover */
+    }
 
+    /* Sidebar and Content Initial Load */
+    @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+    .sidebar-animate { animation: slideInLeft 0.8s ease-out; }
+    .content-animate { animation: slideInUp 0.8s ease-out 0.2s backwards; }
+
+    /* Pulsing Neon Glow for Title */
+    @keyframes pulse-glow {
+        0% { text-shadow: var(--neon-glow); }
+        50% { text-shadow: 0 0 10px #facc15, 0 0 20px #facc15; } /* Yellow accent */
+        100% { text-shadow: var(--neon-glow); }
+    }
+    .title-glow {
+        text-shadow: var(--neon-glow);
+        animation: pulse-glow 3s infinite alternate;
+        transition: text-shadow 0.3s;
+    }
+
+    /* --- CORE UI STYLING --- */
+
+    /* Advanced Chat Box with 3D Hover */
     .chat-box {
       background-color: var(--chat-box-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--shadow-color);
-      transition: background-color 0.3s, border-color 0.3s;
+      backdrop-filter: blur(15px); /* Stronger blur */
+      border: 2px solid rgba(79, 70, 229, 0.3); /* Thin glowing border */
+      box-shadow: 0 0 15px var(--shadow-color);
+      transition: background-color 0.3s, border-color 0.3s, box-shadow 0.5s, transform 0.5s;
+      perspective: 1000px;
+    }
+    .chat-box:hover {
+        /* Subtle 3D tilt effect */
+        transform: rotateX(1deg) rotateY(-1deg) scale(1.005);
+        box-shadow: 0 0 25px var(--shadow-color), 0 0 40px rgba(79, 70, 229, 0.2);
     }
     
-    /* 🔑 FIX: Ensure all content inside the chat bubble respects its maximum width */
     .ai-bubble { 
         background-color: var(--ai-bubble); 
         color: white; 
-        /* The main fix is applied here: allowing the content to shrink inside max-w-xl */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), var(--neon-glow); /* Neon on AI bubble */
         overflow-wrap: break-word; 
     }
     .user-bubble { 
         background-color: var(--user-bubble); 
         color: var(--text-color); 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         overflow-wrap: break-word;
     }
 
-
     #chat-input {
       background-color: var(--input-bg);
-      border-color: var(--input-border);
+      border: 1px solid var(--input-border);
       color: var(--text-color);
+      box-shadow: inset 0 0 5px rgba(79, 70, 229, 0.2);
     }
-    .light-mode #chat-input::placeholder { color: #64748b; }
+    #chat-input:focus {
+        border-color: #a78bfa;
+        box-shadow: 0 0 8px rgba(167, 139, 250, 0.8), inset 0 0 5px rgba(79, 70, 229, 0.4);
+    }
 
     .sidebar {
         background-color: var(--sidebar-bg);
-        border-right-color: var(--input-border);
+        border-right: 1px solid rgba(79, 70, 229, 0.2);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
         transition: background-color 0.3s, border-color 0.3s;
     }
 
-    /* 🔑 FIX: Code containers must have horizontal scrolling for long lines (like Pi) */
+    /* Advanced Code Block Styling */
     .code-container pre {
         background-color: var(--code-bg) !important;
-        border: 1px solid var(--input-border);
-        transition: background-color 0.3s;
-        border-radius: 0.5rem; /* Ensure rounded corners on the code block */
-        
-        /* --- CRITICAL FIXES FOR CODE BLOCKS --- */
-        overflow-x: auto; /* Allows horizontal scrolling */
-        white-space: pre; /* Preserves whitespace */
-        word-break: normal; /* Prevents unwanted breaking of code */
+        border: 2px solid rgba(79, 70, 229, 0.4);
+        box-shadow: 0 0 10px rgba(79, 70, 229, 0.3);
+        transition: background-color 0.3s, box-shadow 0.3s;
+        border-radius: 0.75rem; 
+        overflow-x: auto;
+        white-space: pre; 
+        word-break: normal; 
         word-wrap: normal;
-        /* --- END CRITICAL FIXES --- */
     }
     
-    /* 🔑 FIX: Inline code tags must also break if they are exceptionally long */
-    .ai-bubble code {
-        word-break: break-all;
-        white-space: normal; 
+    .copy-button {
+        /* Make copy button pulse */
+        animation: micIdlePulse 2s infinite ease-in-out;
     }
 
-    .modal-overlay { background-color: rgba(0, 0, 0, 0.7); }
-    .modal-content {
-        background-color: var(--input-bg);
-        border: 1px solid var(--input-border);
-        color: var(--text-color);
+    /* --- GLOBAL BUTTON EFFECTS --- */
+    .btn-maxed {
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .btn-maxed:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(99, 102, 241, 0.8);
+    }
+    .btn-indigo-maxed {
+        background-color: #4f46e5;
+        color: white;
+    }
+    .btn-indigo-maxed:hover {
+        background-color: #6366f1;
     }
 
-    .typewriter-placeholder {
-        overflow: hidden; 
-        white-space: nowrap; 
-        border-right: 3px solid white; 
-        width: 15ch;
-        animation: typing 1.5s steps(15) infinite, blink-caret 0.75s step-end infinite;
-    }
-    @keyframes typing { from { width: 0 } to { width: 15ch } }
-    @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: white; } }
-    
-    /* 🎙️ Dictation Mic Animations */
+    /* 🎙️ Dictation Mic Animations (Enhanced) */
     #mic-button {
       transition: all 0.3s ease;
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-    }
-    #mic-button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.6); /* Stronger idle glow */
     }
 
     /* Mic idle pulse */
     @keyframes micIdlePulse {
       0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-      50% { box-shadow: 0 0 18px rgba(99, 102, 241, 0.6); }
+      50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.9); } /* Brighter pulse */
       100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
     }
     #mic-button:not(.recording) {
-      animation: micIdlePulse 2.5s infinite ease-in-out;
+      animation: micIdlePulse 2s infinite ease-in-out;
     }
 
-    /* Mic active recording pulse (red glow) */
+    /* Mic active recording pulse (Red Hot Glow) */
     @keyframes micRecordingPulse {
-      0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
-      50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); transform: scale(1.15); }
-      100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
+      0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); transform: scale(1); }
+      50% { box-shadow: 0 0 30px rgba(239, 68, 68, 1), 0 0 10px rgba(239, 68, 68, 0.5); transform: scale(1.15); }
+      100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); transform: scale(1); }
     }
     #mic-button.recording {
       background-color: #ef4444 !important;
-      animation: micRecordingPulse 1.2s infinite ease-in-out;
+      animation: micRecordingPulse 1s infinite ease-in-out;
     }
+    
+    /* Image Preview Container (with its own glow) */
+    #image-preview-container {
+        border: 1px solid rgba(250, 204, 21, 0.4); /* Yellow accent border */
+        box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+    }
+    
+    /* ------------------------------------------------------------------ */
+    /* 🌟 MAXED CSS & ANIMATION IMPLEMENTATION END 🌟 */
+    /* ------------------------------------------------------------------ */
   </style>
 </head>
 
 <body class="fade-page flex min-h-screen">
   
-  <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0" role="navigation">
+  <nav class="sidebar sidebar-animate hidden md:block w-56 p-4 flex-shrink-0" role="navigation">
     <div class="flex items-center space-x-2 mb-8">
       <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
-      <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
+      <h2 class="text-lg font-bold text-indigo-400 title-glow">CortexLuma</h2>
     </div>
 
-    <button id="new-chat-button" onclick="newChat()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700" aria-label="Start a New Chat">
+    <button id="new-chat-button" onclick="newChat()" class="w-full btn-maxed btn-indigo-maxed flex items-center justify-center space-x-2 px-3 py-2 rounded-lg font-semibold" aria-label="Start a New Chat">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
       <span>New Chat</span>
     </button>
     
-    <button id="settings-button" onclick="openSettingsModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300" aria-label="Open Model Settings">
+    <button id="settings-button" onclick="openSettingsModal()" class="w-full btn-maxed flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300" aria-label="Open Model Settings">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
       <span>Settings</span>
     </button>
     
-    <button id="theme-toggle-button" onclick="toggleTheme()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300" aria-label="Toggle Light/Dark Mode">
+    <button id="theme-toggle-button" onclick="toggleTheme()" class="w-full btn-maxed flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300" aria-label="Toggle Light/Dark Mode">
       <span id="theme-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg></span>
       <span id="theme-text">Light Mode</span>
     </button>
 
-    <button id="clear-history-button" onclick="clearHistory()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300" aria-label="Clear Chat History">
+    <button id="clear-history-button" onclick="clearHistory()" class="w-full btn-maxed flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300" aria-label="Clear Chat History">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" /></svg>
       <span>Clear History</span>
     </button>
   </nav>
 
-  <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4" role="main">
+  <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4 content-animate" role="main">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
+      <h1 class="text-3xl font-bold text-indigo-400 title-glow">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
       <p class="text-slate-400 mt-1">Real-time chat, <b>multi-image</b> 📸 analysis, and <b>custom AI personality</b>. Check the settings panel!</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl" role="log" aria-live="polite"></div>
 
     <form id="chat-form" class="flex flex-col space-y-2 flex-shrink-0">
-      <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 rounded-lg border border-slate-700" style="background-color: var(--input-bg);" role="status" aria-atomic="true">
+      <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 rounded-lg border" style="background-color: var(--input-bg);" role="status" aria-atomic="true">
         <span id="image-count-text" class="text-sm font-semibold text-indigo-400">0 Images</span>
         <div id="image-previews" class="flex space-x-2 overflow-x-auto p-1"></div>
-        <button type="button" onclick="removeAllImages()" class="text-red-400 hover:text-red-300 transition flex-shrink-0" aria-label="Remove all uploaded images">
+        <button type="button" onclick="removeAllImages()" class="text-red-400 hover:text-red-300 transition flex-shrink-0 btn-maxed" aria-label="Remove all uploaded images">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
         </button>
       </div>
       
       <div class="relative flex items-center">
         <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" multiple class="hidden" onchange="previewImages(event)" aria-label="Select images for analysis">
-        <button type="button" id="image-upload-button" onclick="document.getElementById('file-input').click()" class="p-2 rounded-full text-white mr-2 transition duration-150" style="background-color: #475569;" aria-label="Upload Images">
+        <button type="button" id="image-upload-button" onclick="document.getElementById('file-input').click()" class="p-2 rounded-full text-white mr-2 transition duration-150 btn-maxed" style="background-color: #475569;" aria-label="Upload Images">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-3v2z" clip-rule="evenodd" /></svg>
         </button>
 
-        <textarea id="chat-input" class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden" rows="1" placeholder="Ask a question or upload image(s)..." style="min-height: 44px; max-height: 200px;" aria-label="Chat input field"></textarea>
+        <textarea id="chat-input" class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none transition duration-150 overflow-hidden" rows="1" placeholder="Ask a question or upload image(s)..." style="min-height: 44px; max-height: 200px;" aria-label="Chat input field"></textarea>
         
         <button type="button" id="mic-button" class="absolute right-12 bottom-2 bg-slate-600 hover:bg-slate-500 text-white p-2 rounded-full transition" title="Click to speak" aria-label="Start Voice Dictation">
           <svg xmlns="http://www.w3.org/2000/svg" id="mic-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -226,7 +272,7 @@
           </svg>
         </button>
 
-        <button type="submit" id="send-button" class="absolute right-3 bottom-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition" aria-label="Send Message">
+        <button type="submit" id="send-button" class="absolute right-3 bottom-2 btn-maxed btn-indigo-maxed p-2 rounded-full transition" aria-label="Send Message">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>
         </button>
       </div>
@@ -237,8 +283,8 @@
   <div id="settings-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <div class="modal-content w-full max-w-lg p-6 rounded-xl shadow-2xl">
         <div class="flex justify-between items-center mb-4 border-b pb-2 border-indigo-400/50">
-            <h3 id="settings-title" class="text-xl font-bold text-indigo-400">Model Configuration Settings</h3>
-            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition" aria-label="Close Settings Modal">
+            <h3 id="settings-title" class="text-xl font-bold text-indigo-400 title-glow">Model Configuration Settings</h3>
+            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition btn-maxed" aria-label="Close Settings Modal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
@@ -271,7 +317,7 @@
         </div>
 
         <button onclick="saveSettings(); closeSettingsModal()" 
-                class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition" aria-label="Save and Close Settings">
+                class="w-full py-2 btn-maxed btn-indigo-maxed font-semibold rounded-lg transition" aria-label="Save and Close Settings">
             Save Settings
         </button>
     </div>
@@ -414,7 +460,7 @@
                 localStorage.setItem('cortexLumaTheme', 'dark');
                 document.getElementById('theme-icon').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg>';
                 document.getElementById('theme-text').textContent = 'Light Mode';
-                document.querySelector('link[href*="atom-one-dark"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+                document.querySelector('link[href*="atom-one-light"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
             } else {
                 document.body.classList.add('light-mode');
                 localStorage.setItem('cortexLumaTheme', 'light');
@@ -604,7 +650,7 @@
                         </div>
 
                         <button 
-                            class="copy-button absolute top-0 right-0 mt-8 mr-2 px-2 py-1 text-xs text-white bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 z-20"
+                            class="copy-button absolute top-0 right-0 mt-8 mr-2 px-2 py-1 text-xs text-white bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 z-20 btn-maxed"
                             onclick="copyCode(this)"
                             aria-label="Copy code block to clipboard"
                         >
