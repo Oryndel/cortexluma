@@ -1,565 +1,565 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Dark Mode Authentication</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Deep Blue Dark Theme Styling */
-        :root {
-            --color-bg-base: #0a0e14; /* Even darker base for space */
-            --color-card-dark: #1f2937;
-            --color-primary: #a78bfa; /* Light Purple accent */
-            --color-primary-hover: #8b5cf6;
-            --color-text-light: #e5e7eb;
-            --color-input-bg: #374151;
-            --color-input-border: #4b5563;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Dark Mode Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Deep Blue Dark Theme Styling */
+        :root {
+            --color-bg-base: #0a0e14; /* Even darker base for space */
+            --color-card-dark: #1f2937;
+            --color-primary: #a78bfa; /* Light Purple accent */
+            --color-primary-hover: #8b5cf6;
+            --color-text-light: #e5e7eb;
+            --color-input-bg: #374151;
+            --color-input-border: #4b5563;
+        }
 
-        /* ------------------------------------- */
-        /* --- CORE BACKGROUND & ANIMATIONS --- */
-        /* ------------------------------------- */
+        /* ------------------------------------- */
+        /* --- CORE BACKGROUND & ANIMATIONS --- */
+        /* ------------------------------------- */
 
-        body {
-            background-color: var(--color-bg-base);
-            font-family: 'Inter', sans-serif;
-            color: var(--color-text-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden; 
-            position: relative;
-        }
+        body {
+            background-color: var(--color-bg-base);
+            font-family: 'Inter', sans-serif;
+            color: var(--color-text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden; 
+            position: relative;
+        }
 
-        /* Nebula Animation Keyframes - Subtle, slow color drift */
-        @keyframes nebula-drift {
-            0% { background-position: 0% 0%; }
-            50% { background-position: 100% 100%; }
-            100% { background-position: 0% 0%; }
-        }
+        /* Nebula Animation Keyframes - Subtle, slow color drift */
+        @keyframes nebula-drift {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
 
-        /* Star Twinkle Animation Keyframes - Randomly adjust opacity for blinking effect */
-        @keyframes star-twinkle {
-            0% { opacity: 0.3; }
-            30% { opacity: 0.7; }
-            50% { opacity: 0.2; }
-            70% { opacity: 0.8; }
-            100% { opacity: 0.3; }
-        }
+        /* Star Twinkle Animation Keyframes - Randomly adjust opacity for blinking effect */
+        @keyframes star-twinkle {
+            0% { opacity: 0.3; }
+            30% { opacity: 0.7; }
+            50% { opacity: 0.2; }
+            70% { opacity: 0.8; }
+            100% { opacity: 0.3; }
+        }
 
-        /* 1. Nebula Pseudo-Element (The Glowing Clouds) */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1; /* Placed behind the card, above the stars */
-            
-            /* Layered radial gradients for depth and color shift (Purple/Pink/Indigo) */
-            background: 
-                /* Primary Purple/Pink Core Glow */
-                radial-gradient(circle at 75% 40%, rgba(200, 100, 255, 0.15) 0%, transparent 30%),
-                /* Secondary Deep Violet Light */
-                radial-gradient(circle at 25% 60%, rgba(138, 43, 226, 0.1) 0%, transparent 40%),
-                /* Tertiary Soft Blue/Indigo Edge */
-                radial-gradient(circle at 10% 20%, rgba(65, 105, 225, 0.08) 0%, transparent 50%),
-                /* Background Varnish */
-                radial-gradient(circle at 90% 80%, rgba(255, 105, 180, 0.05) 0%, transparent 45%);
+        /* 1. Nebula Pseudo-Element (The Glowing Clouds) */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Placed behind the card, above the stars */
+            
+            /* Layered radial gradients for depth and color shift (Purple/Pink/Indigo) */
+            background: 
+                /* Primary Purple/Pink Core Glow */
+                radial-gradient(circle at 75% 40%, rgba(200, 100, 255, 0.15) 0%, transparent 30%),
+                /* Secondary Deep Violet Light */
+                radial-gradient(circle at 25% 60%, rgba(138, 43, 226, 0.1) 0%, transparent 40%),
+                /* Tertiary Soft Blue/Indigo Edge */
+                radial-gradient(circle at 10% 20%, rgba(65, 105, 225, 0.08) 0%, transparent 50%),
+                /* Background Varnish */
+                radial-gradient(circle at 90% 80%, rgba(255, 105, 180, 0.05) 0%, transparent 45%);
 
 
-            background-size: 300% 300%; 
-            animation: nebula-drift 60s ease-in-out infinite alternate; 
-            filter: blur(150px) brightness(1.1); 
-        }
+            background-size: 300% 300%; 
+            animation: nebula-drift 60s ease-in-out infinite alternate; 
+            filter: blur(150px) brightness(1.1); 
+        }
 
-        /* 2. Star Field Pseudo-Element (The Blinking Stars) */
-        body::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2; /* Ensure it's the farthest back layer */
-            
-            /* Two layered star fields for density and randomness */
-            background: 
-                /* Small, distant stars */
-                repeating-radial-gradient(circle at 0 0, #fff 0px, #fff 1px, transparent 2px, transparent 150px),
-                /* Larger, closer stars */
-                repeating-radial-gradient(circle at 50% 50%, #fff 0px, #fff 2px, transparent 4px, transparent 250px);
+        /* 2. Star Field Pseudo-Element (The Blinking Stars) */
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2; /* Ensure it's the farthest back layer */
+            
+            /* Two layered star fields for density and randomness */
+            background: 
+                /* Small, distant stars */
+                repeating-radial-gradient(circle at 0 0, #fff 0px, #fff 1px, transparent 2px, transparent 150px),
+                /* Larger, closer stars */
+                repeating-radial-gradient(circle at 50% 50%, #fff 0px, #fff 2px, transparent 4px, transparent 250px);
 
-            background-size: 1500px 1500px, 2000px 2000px; /* Different sizes for visual depth */
-            opacity: 0.3;
-            animation: star-twinkle 4s infinite alternate, nebula-drift 120s linear infinite; /* Blinking and very slow drift */
-            mix-blend-mode: screen; /* Helps stars look brighter against the dark background */
-        }
-        
-        /* ------------------------------------- */
-        /* --- CARD & FORM STYLING --- */
-        /* ------------------------------------- */
-        .auth-card {
-            /* Beautiful Glass/Neumorphic Effect */
-            background-color: rgba(31, 41, 55, 0.85); 
-            backdrop-filter: blur(10px); 
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); 
-            transition: all 0.3s ease;
-        }
-        .input-field {
-            background-color: var(--color-input-bg);
-            border: 1px solid var(--color-input-border);
-            color: var(--color-text-light);
-            transition: all 0.15s ease-in-out;
-        }
-        .input-field:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 1px var(--color-primary);
-            outline: none;
-        }
-        .btn-primary {
-            background-color: var(--color-primary);
-            transition: background-color 0.2s ease, box-shadow 0.3s;
-        }
-        .btn-primary:hover {
-            background-color: var(--color-primary-hover);
-        }
-        /* Custom style for Google Sign-In Button */
-        #google-sign-in-btn {
-            background-color: #4285F4; /* Google Blue */
-            transition: background-color 0.2s ease;
-        }
-        #google-sign-in-btn:hover {
-            background-color: #357ae8;
-        }
-        .status-box {
-            border: 1px solid var(--color-input-border);
-            background-color: #374151;
-            color: var(--color-text-light);
-        }
-        .disabled-ui {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-        
-        /* --- UI ANIMATIONS --- */
-        
-        /* 1. Card Entry Animation */
-        @keyframes fadeInSlideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-card-entry {
-            animation: fadeInSlideUp 0.6s ease-out 1;
-        }
+            background-size: 1500px 1500px, 2000px 2000px; /* Different sizes for visual depth */
+            opacity: 0.3;
+            animation: star-twinkle 4s infinite alternate, nebula-drift 120s linear infinite; /* Blinking and very slow drift */
+            mix-blend-mode: screen; /* Helps stars look brighter against the dark background */
+        }
+        
+        /* ------------------------------------- */
+        /* --- CARD & FORM STYLING --- */
+        /* ------------------------------------- */
+        .auth-card {
+            /* Beautiful Glass/Neumorphic Effect */
+            background-color: rgba(31, 41, 55, 0.85); 
+            backdrop-filter: blur(10px); 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); 
+            transition: all 0.3s ease;
+        }
+        .input-field {
+            background-color: var(--color-input-bg);
+            border: 1px solid var(--color-input-border);
+            color: var(--color-text-light);
+            transition: all 0.15s ease-in-out;
+        }
+        .input-field:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 1px var(--color-primary);
+            outline: none;
+        }
+        .btn-primary {
+            background-color: var(--color-primary);
+            transition: background-color 0.2s ease, box-shadow 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+        /* Custom style for Google Sign-In Button */
+        #google-sign-in-btn {
+            background-color: #4285F4; /* Google Blue */
+            transition: background-color 0.2s ease;
+        }
+        #google-sign-in-btn:hover {
+            background-color: #357ae8;
+        }
+        .status-box {
+            border: 1px solid var(--color-input-border);
+            background-color: #374151;
+            color: var(--color-text-light);
+        }
+        .disabled-ui {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        /* --- UI ANIMATIONS --- */
+        
+        /* 1. Card Entry Animation */
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-card-entry {
+            animation: fadeInSlideUp 0.6s ease-out 1;
+        }
 
-        /* 2. Button Pulse Animation (Using Primary Purple) */
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4); } 
-            50% { box-shadow: 0 0 0 10px rgba(167, 139, 250, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0); }
-        }
-        .animate-pulse-glow {
-            animation: pulseGlow 2s infinite;
-        }
-    </style>
+        /* 2. Button Pulse Animation (Using Primary Purple) */
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4); } 
+            50% { box-shadow: 0 0 0 10px rgba(167, 139, 250, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0); }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+    </style>
 </head>
 <body>
 
-    <div 
-        id="auth-container" 
-        class="auth-card p-8 rounded-xl w-full max-w-lg md:max-w-xl lg:max-w-3xl mx-4 animate-card-entry"
-    >
-        
-        <h1 id="form-title" class="text-3xl font-extrabold text-center mb-6 text-white tracking-wide">Login</h1>
+    <div 
+        id="auth-container" 
+        class="auth-card p-8 rounded-xl w-full max-w-lg md:max-w-xl lg:max-w-3xl mx-4 animate-card-entry"
+    >
+        
+        <h1 id="form-title" class="text-3xl font-extrabold text-center mb-6 text-white tracking-wide">Login</h1>
 
-        <div id="user-status" class="status-box mb-6 p-3 rounded-lg text-center text-sm font-medium">
-            Checking Firebase status...
-        </div>
+        <div id="user-status" class="status-box mb-6 p-3 rounded-lg text-center text-sm font-medium">
+            Checking Firebase status...
+        </div>
 
-        <div id="message-box" class="hidden mb-4 p-3 rounded-lg text-sm font-medium"></div>
+        <div id="message-box" class="hidden mb-4 p-3 rounded-lg text-sm font-medium"></div>
 
-        <div id="auth-form" class="space-y-4">
-            
-            <div id="register-fields" class="space-y-4 hidden">
-                
-                <div>
-                    <label for="name" class="block text-sm font-medium mb-1">Full Name</label>
-                    <input type="text" id="name" placeholder="John Doe" class="input-field block w-full px-4 py-3 rounded-lg">
-                </div>
-                
-                <div>
-                    <label for="phone" class="block text-sm font-medium mb-1">Phone Number (Optional)</label>
-                    <input type="tel" id="phone" placeholder="(123) 456-7890" class="input-field block w-full px-4 py-3 rounded-lg">
-                </div>
+        <div id="auth-form" class="space-y-4">
+            
+            <div id="register-fields" class="space-y-4 hidden">
+                
+                <div>
+                    <label for="name" class="block text-sm font-medium mb-1">Full Name</label>
+                    <input type="text" id="name" placeholder="John Doe" class="input-field block w-full px-4 py-3 rounded-lg">
+                </div>
+                
+                <div>
+                    <label for="phone" class="block text-sm font-medium mb-1">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" placeholder="(123) 456-7890" class="input-field block w-full px-4 py-3 rounded-lg">
+                </div>
 
-                <div>
-                    <label for="age" class="block text-sm font-medium mb-1">Age (Optional)</label>
-                    <input type="number" id="age" placeholder="25" min="1" max="150" class="input-field block w-full px-4 py-3 rounded-lg">
-                </div>
-            </div>
+                <div>
+                    <label for="age" class="block text-sm font-medium mb-1">Age (Optional)</label>
+                    <input type="number" id="age" placeholder="25" min="1" max="150" class="input-field block w-full px-4 py-3 rounded-lg">
+                </div>
+            </div>
 
-            <div>
-                <label for="email" class="block text-sm font-medium mb-1">Email</label>
-                <input type="email" id="email" placeholder="you@example.com" class="input-field block w-full px-4 py-3 rounded-lg">
-            </div>
+            <div>
+                <label for="email" class="block text-sm font-medium mb-1">Email</label>
+                <input type="email" id="email" placeholder="you@example.com" class="input-field block w-full px-4 py-3 rounded-lg">
+            </div>
 
-            <div class="relative">
-                <label for="password" class="block text-sm font-medium mb-1">Password</label>
-                <input type="password" id="password" placeholder="••••••••" class="input-field block w-full px-4 py-3 rounded-lg pr-12" autocomplete="off">
-                
-                <button id="password-toggle-btn" type="button" 
-                        aria-label="Show Password"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none transition duration-150 p-1 rounded-full">
-                    
-                    <svg id="eye-on" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                    
-                    <svg id="eye-off" class="h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.16 13.16 0 0 0 2 12s3 7 10 7a9.88 9.88 0 0 0 4.29-.93"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
-                </button>
-            </div>
-        </div>
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium mb-1">Password</label>
+                <input type="password" id="password" placeholder="••••••••" class="input-field block w-full px-4 py-3 rounded-lg pr-12" autocomplete="off">
+                
+                <button id="password-toggle-btn" type="button" 
+                        aria-label="Show Password"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none transition duration-150 p-1 rounded-full">
+                    
+                    <svg id="eye-on" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    
+                    <svg id="eye-off" class="h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.16 13.16 0 0 0 2 12s3 7 10 7a9.88 9.88 0 0 0 4.29-.93"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                </button>
+            </div>
+        </div>
 
-        <div class="mt-6 space-y-4">
-            
-            <div id="logged-out-buttons">
-                <button 
-                    id="login-btn" 
-                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md animate-pulse-glow"
-                >
-                    Login
-                </button>
-                
-                <button 
-                    id="toggle-register-btn" 
-                    class="mt-3 w-full text-sm text-gray-400 hover:text-purple-400 transition duration-150"
-                >
-                    Don't have an account? <span class="font-semibold">Register Here</span>
-                </button>
+        <div class="mt-6 space-y-4">
+            
+            <div id="logged-out-buttons">
+                <button 
+                    id="login-btn" 
+                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md animate-pulse-glow"
+                >
+                    Login
+                </button>
+                
+                <button 
+                    id="toggle-register-btn" 
+                    class="mt-3 w-full text-sm text-gray-400 hover:text-purple-400 transition duration-150"
+                >
+                    Don't have an account? <span class="font-semibold">Register Here</span>
+                </button>
 
-                <button 
-                    id="register-btn" 
-                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md hidden animate-pulse-glow"
-                >
-                    Register Account
-                </button>
+                <button 
+                    id="register-btn" 
+                    class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md hidden animate-pulse-glow"
+                >
+                    Register Account
+                </button>
 
-                <button 
-                    id="toggle-login-btn" 
-                    class="mt-3 w-full text-sm text-gray-400 hover:text-purple-400 transition duration-150 hidden"
-                >
-                    Already have an account? <span class="font-semibold">Login</span>
-                </button>
-            </div>
+                <button 
+                    id="toggle-login-btn" 
+                    class="mt-3 w-full text-sm text-gray-400 hover:text-purple-400 transition duration-150 hidden"
+                >
+                    Already have an account? <span class="font-semibold">Login</span>
+                </button>
+            </div>
 
-            <div id="logged-in-actions" class="hidden">
-                 </div>
-        </div>
-        
-        <div class="mt-6 pt-4 border-t border-gray-700">
-            <button 
-                id="google-sign-in-btn" 
-                class="w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md flex items-center justify-center space-x-2"
-            >
-                <svg class="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#fbc02d" d="M22 24c0-2.81 1.07-5.46 2.87-7.48L11 6C6.54 10.37 4 17.5 4 24s2.54 13.63 7 18l13.87-10.52C23.07 29.46 22 26.81 22 24z"/><path fill="#e53935" d="M24.87 24c0 2.81-1.07 5.46-2.87 7.48l13.87 10.52c4.46-4.37 7-11.5 7-18s-2.54-13.63-7-18L24.87 16.52C23.07 18.54 22 21.19 22 24z"/><path fill="#34a853" d="M11 6c-4.46 4.37-7 11.5-7 18s2.54 13.63 7 18l.84-4.83L24.87 16.52C23.07 18.54 22 21.19 22 24h2c0-2.81 1.07-5.46 2.87-7.48l13.87-10.52C39.46 10.37 36.93 5 32 5H16c-4.93 0-9.46 5.37-12 11l.14 1.11z"/></svg>
-                <span>Sign in with Google</span>
-            </button>
-        </div>
+            <div id="logged-in-actions" class="hidden">
+                 </div>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t border-gray-700">
+            <button 
+                id="google-sign-in-btn" 
+                class="w-full py-3 px-4 rounded-lg text-white font-semibold shadow-md flex items-center justify-center space-x-2"
+            >
+                <svg class="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#fbc02d" d="M22 24c0-2.81 1.07-5.46 2.87-7.48L11 6C6.54 10.37 4 17.5 4 24s2.54 13.63 7 18l13.87-10.52C23.07 29.46 22 26.81 22 24z"/><path fill="#e53935" d="M24.87 24c0 2.81-1.07 5.46-2.87 7.48l13.87 10.52c4.46-4.37 7-11.5 7-18s-2.54-13.63-7-18L24.87 16.52C23.07 18.54 22 21.19 22 24z"/><path fill="#34a853" d="M11 6c-4.46 4.37-7 11.5-7 18s2.54 13.63 7 18l.84-4.83L24.87 16.52C23.07 18.54 22 21.19 22 24h2c0-2.81 1.07-5.46 2.87-7.48l13.87-10.52C39.46 10.37 36.93 5 32 5H16c-4.93 0-9.46 5.37-12 11l.14 1.11z"/></svg>
+                <span>Sign in with Google</span>
+            </button>
+        </div>
 
-    </div>
+    </div>
 
-    <script type="module">
-        // MODIFIED IMPORTS: Added GoogleAuthProvider, signInWithPopup
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script type="module">
+        // MODIFIED IMPORTS: Added GoogleAuthProvider, signInWithPopup
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- UI REFERENCES ---
-        const formTitle = document.getElementById('form-title');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const nameInput = document.getElementById('name');
-        const phoneInput = document.getElementById('phone');
-        const ageInput = document.getElementById('age');
+        // --- UI REFERENCES ---
+        const formTitle = document.getElementById('form-title');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const nameInput = document.getElementById('name');
+        const phoneInput = document.getElementById('phone');
+        const ageInput = document.getElementById('age');
 
-        const registerFields = document.getElementById('register-fields');
-        const passwordToggleBtn = document.getElementById('password-toggle-btn');
-        const eyeOn = document.getElementById('eye-on');
-        const eyeOff = document.getElementById('eye-off');
-        
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const toggleRegisterBtn = document.getElementById('toggle-register-btn');
-        const toggleLoginBtn = document.getElementById('toggle-login-btn');
-        
-        const loggedInActions = document.getElementById('logged-in-actions');
+        const registerFields = document.getElementById('register-fields');
+        const passwordToggleBtn = document.getElementById('password-toggle-btn');
+        const eyeOn = document.getElementById('eye-on');
+        const eyeOff = document.getElementById('eye-off');
+        
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const toggleRegisterBtn = document.getElementById('toggle-register-btn');
+        const toggleLoginBtn = document.getElementById('toggle-login-btn');
+        
+        const loggedInActions = document.getElementById('logged-in-actions');
 
-        const userStatus = document.getElementById('user-status');
-        const messageBox = document.getElementById('message-box');
-        const authForm = document.getElementById('auth-form');
-        
-        // NEW UI REFERENCE
-        const googleSignInBtn = document.getElementById('google-sign-in-btn'); 
+        const userStatus = document.getElementById('user-status');
+        const messageBox = document.getElementById('message-box');
+        const authForm = document.getElementById('auth-form');
+        
+        // NEW UI REFERENCE
+        const googleSignInBtn = document.getElementById('google-sign-in-btn'); 
 
-        // --- CONFIGURATION ---
-        
-        // **!!! CRITICAL: TARGET REDIRECT URL !!!**
-        const REDIRECT_URL = 'https://oryndel.github.io/cortexluma/cortexluma'; 
+        // --- CONFIGURATION ---
+        
+        // **!!! CRITICAL: TARGET REDIRECT URL !!!**
+        const REDIRECT_URL = 'https://oryndel.github.io/cortexluma/cortexluma'; 
 
-        const FIREBASE_CONFIG = {
-            apiKey: "AIzaSyBhUXJqjFiygvNx60CA4R8HrfZ2ghV8GCA",
-            authDomain: "contexluma-authcation.firebaseapp.com",
-            projectId: "contexluma-authcation",
-            storageBucket: "contexluma-authcation.firebasestorage.app",
-            messagingSenderId: "446271009223",
-            appId: "1:446271009223:web:3b5df78c8b9c43806669e2",
-            measurementId: "G-2ZPY3K5VYX"
-        };
-        
-        const appId = FIREBASE_CONFIG.projectId;
-        
-        /** Shows a temporary success or error message. */
-        function showMessage(type, message) {
-            messageBox.textContent = message;
-            messageBox.className = `mb-4 p-3 rounded-lg text-sm font-medium ${type === 'error' ? 'bg-red-700 text-white' : 'bg-green-700 text-white'}`;
-            messageBox.style.display = 'block';
-            if (message.indexOf('FATAL') === -1) {
-                setTimeout(() => { messageBox.style.display = 'none'; }, 5000); 
-            }
-        }
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBhUXJqjFiygvNx60CA4R8HrfZ2ghV8GCA",
+            authDomain: "contexluma-authcation.firebaseapp.com",
+            projectId: "contexluma-authcation",
+            storageBucket: "contexluma-authcation.firebasestorage.app",
+            messagingSenderId: "446271009223",
+            appId: "1:446271009223:web:3b5df78c8b9c43806669e2",
+            measurementId: "G-2ZPY3K5VYX"
+        };
+        
+        const appId = FIREBASE_CONFIG.projectId;
+        
+        /** Shows a temporary success or error message. */
+        function showMessage(type, message) {
+            messageBox.textContent = message;
+            messageBox.className = `mb-4 p-3 rounded-lg text-sm font-medium ${type === 'error' ? 'bg-red-700 text-white' : 'bg-green-700 text-white'}`;
+            messageBox.style.display = 'block';
+            if (message.indexOf('FATAL') === -1) {
+                setTimeout(() => { messageBox.style.display = 'none'; }, 5000); 
+            }
+        }
 
-        // --- FIREBASE INITIALIZATION ---
-        let auth, db;
-        
-        if (!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) {
-            const errorMessage = 'FATAL ERROR: Firebase configuration is invalid (missing API Key or Project ID).';
-            showMessage('error', errorMessage);
-            userStatus.textContent = 'Configuration Error.';
-            authForm.classList.add('disabled-ui');
-            document.getElementById('logged-out-buttons').classList.add('disabled-ui');
-        } else {
-            try {
-                const app = initializeApp(FIREBASE_CONFIG);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                userStatus.textContent = 'Please log in or register.';
-            } catch (error) {
-                 const errorMessage = `FATAL INIT ERROR: Failed to initialize Firebase. Error: ${error.message}`;
-                 showMessage('error', errorMessage);
-                 userStatus.textContent = 'Initialization Failed.';
-                 authForm.classList.add('disabled-ui');
-                 document.getElementById('logged-out-buttons').classList.add('disabled-ui');
-            }
-        }
+        // --- FIREBASE INITIALIZATION ---
+        let auth, db;
+        
+        if (!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) {
+            const errorMessage = 'FATAL ERROR: Firebase configuration is invalid (missing API Key or Project ID).';
+            showMessage('error', errorMessage);
+            userStatus.textContent = 'Configuration Error.';
+            authForm.classList.add('disabled-ui');
+            document.getElementById('logged-out-buttons').classList.add('disabled-ui');
+        } else {
+            try {
+                const app = initializeApp(FIREBASE_CONFIG);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                userStatus.textContent = 'Please log in or register.';
+            } catch (error) {
+                 const errorMessage = `FATAL INIT ERROR: Failed to initialize Firebase. Error: ${error.message}`;
+                 showMessage('error', errorMessage);
+                 userStatus.textContent = 'Initialization Failed.';
+                 authForm.classList.add('disabled-ui');
+                 document.getElementById('logged-out-buttons').classList.add('disabled-ui');
+            }
+        }
 
-        /** Toggles between Login and Register form views. */
-        function toggleForm(isRegisterMode) {
-            if (isRegisterMode) {
-                formTitle.textContent = 'Create Account';
-                registerFields.classList.remove('hidden');
-                loginBtn.classList.add('hidden');
-                toggleRegisterBtn.classList.add('hidden');
-                registerBtn.classList.remove('hidden');
-                toggleLoginBtn.classList.remove('hidden');
-                
-                // Stop pulse on Login button and start on Register button
-                loginBtn.classList.remove('animate-pulse-glow');
-                registerBtn.classList.add('animate-pulse-glow');
-            } else {
-                formTitle.textContent = 'Login';
-                registerFields.classList.add('hidden');
-                loginBtn.classList.remove('hidden');
-                toggleRegisterBtn.classList.remove('hidden');
-                registerBtn.classList.add('hidden');
-                toggleLoginBtn.classList.add('hidden');
-                
-                // Start pulse on Login button and stop on Register button
-                loginBtn.classList.add('animate-pulse-glow');
-                registerBtn.classList.remove('animate-pulse-glow');
-            }
-        }
+        /** Toggles between Login and Register form views. */
+        function toggleForm(isRegisterMode) {
+            if (isRegisterMode) {
+                formTitle.textContent = 'Create Account';
+                registerFields.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                toggleRegisterBtn.classList.add('hidden');
+                registerBtn.classList.remove('hidden');
+                toggleLoginBtn.classList.remove('hidden');
+                
+                // Stop pulse on Login button and start on Register button
+                loginBtn.classList.remove('animate-pulse-glow');
+                registerBtn.classList.add('animate-pulse-glow');
+            } else {
+                formTitle.textContent = 'Login';
+                registerFields.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                toggleRegisterBtn.classList.remove('hidden');
+                registerBtn.classList.add('hidden');
+                toggleLoginBtn.classList.add('hidden');
+                
+                // Start pulse on Login button and stop on Register button
+                loginBtn.classList.add('animate-pulse-glow');
+                registerBtn.classList.remove('animate-pulse-glow');
+            }
+        }
 
-        /** Handles successful auth event and performs an immediate, unprompted redirect. */
-        function handleAuthSuccess(user) {
-            // Clear inputs
-            passwordInput.value = ''; 
-            emailInput.value = '';
-            nameInput.value = '';
-            phoneInput.value = '';
-            ageInput.value = '';
+        /** Handles successful auth event and performs an immediate, unprompted redirect. */
+        function handleAuthSuccess(user) {
+            // Clear inputs
+            passwordInput.value = ''; 
+            emailInput.value = '';
+            nameInput.value = '';
+            phoneInput.value = '';
+            ageInput.value = '';
 
-            // --- ACTUAL REDIRECTION - INSTANT ---
-            window.location.href = REDIRECT_URL; 
-        }
+            // --- ACTUAL REDIRECTION - INSTANT ---
+            window.location.href = REDIRECT_URL; 
+        }
 
-        // --- EVENT LISTENERS ---
+        // --- EVENT LISTENERS ---
 
-        // 1. Password Visibility Toggle
-        passwordToggleBtn.addEventListener('click', () => {
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
-            
-            eyeOn.classList.toggle('hidden', !isPassword); 
-            eyeOff.classList.toggle('hidden', isPassword); 
-            passwordToggleBtn.setAttribute('aria-label', isPassword ? 'Hide Password' : 'Show Password');
-        });
+        // 1. Password Visibility Toggle
+        passwordToggleBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            
+            eyeOn.classList.toggle('hidden', !isPassword); 
+            eyeOff.classList.toggle('hidden', isPassword); 
+            passwordToggleBtn.setAttribute('aria-label', isPassword ? 'Hide Password' : 'Show Password');
+        });
 
-        // 2. Form Toggles
-        toggleRegisterBtn.addEventListener('click', () => toggleForm(true));
-        toggleLoginBtn.addEventListener('click', () => toggleForm(false));
+        // 2. Form Toggles
+        toggleRegisterBtn.addEventListener('click', () => toggleForm(true));
+        toggleLoginBtn.addEventListener('click', () => toggleForm(false));
 
-        // 3. Register Handler
-        registerBtn.addEventListener('click', async () => {
-            if (!auth || !db) return; 
+        // 3. Register Handler
+        registerBtn.addEventListener('click', async () => {
+            if (!auth || !db) return; 
 
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            const name = nameInput.value.trim();
-            const phone = phoneInput.value.trim();
-            const age = ageInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const age = ageInput.value.trim();
 
-            if (!email || !password || !name) {
-                showMessage('error', 'Email, Password, and Full Name are required.');
-                return;
-            }
-            if (password.length < 6) {
-                 showMessage('error', 'Password must be at least 6 characters long.');
-                 return;
-            }
+            if (!email || !password || !name) {
+                showMessage('error', 'Email, Password, and Full Name are required.');
+                return;
+            }
+            if (password.length < 6) {
+                 showMessage('error', 'Password must be at least 6 characters long.');
+                 return;
+            }
 
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
 
-                await updateProfile(user, { displayName: name });
+                await updateProfile(user, { displayName: name });
 
-                const profileRef = doc(db, 
-                    `artifacts/${appId}/users/${user.uid}/user_data/profile`
-                );
-                await setDoc(profileRef, {
-                    phone: phone || null,
-                    age: age ? parseInt(age, 10) : null,
-                    email: user.email, 
-                    displayName: name,
-                    createdAt: new Date().toISOString()
-                });
-                
-                handleAuthSuccess(user); // Triggers immediate redirect
+                const profileRef = doc(db, 
+                    `artifacts/${appId}/users/${user.uid}/user_data/profile`
+                );
+                await setDoc(profileRef, {
+                    phone: phone || null,
+                    age: age ? parseInt(age, 10) : null,
+                    email: user.email, 
+                    displayName: name,
+                    createdAt: new Date().toISOString()
+                });
+                
+                handleAuthSuccess(user); // Triggers immediate redirect
 
-            } catch (error) {
-                console.error('Registration error:', error.code, error.message);
-                if (error.code === 'auth/email-already-in-use') {
-                    showMessage('error', 'Registration Failed: That email address is already registered.');
-                } else if (error.code === 'auth/network-request-failed') {
-                    showMessage('error', 'Registration Failed: Network error. Check your internet connection.');
-                } else {
-                    showMessage('error', `Registration Failed: ${error.message}`);
-                }
-            }
-        });
+            } catch (error) {
+                console.error('Registration error:', error.code, error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    showMessage('error', 'Registration Failed: That email address is already registered.');
+                } else if (error.code === 'auth/network-request-failed') {
+                    showMessage('error', 'Registration Failed: Network error. Check your internet connection.');
+                } else {
+                    showMessage('error', `Registration Failed: ${error.message}`);
+                }
+            }
+        });
 
-        // 4. Login Handler
-        loginBtn.addEventListener('click', async () => {
-            if (!auth) return; 
+        // 4. Login Handler
+        loginBtn.addEventListener('click', async () => {
+            if (!auth) return; 
 
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            if (!email || !password) {
-                showMessage('error', 'Please enter both email and password.');
-                return;
-            }
+            if (!email || !password) {
+                showMessage('error', 'Please enter both email and password.');
+                return;
+            }
 
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                handleAuthSuccess(userCredential.user); // Triggers immediate redirect
-            } catch (error) {
-                console.error('Login error:', error.code, error.message);
-                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-                    showMessage('error', 'Login Failed: Invalid email or password.');
-                } else if (error.code === 'auth/network-request-failed') {
-                    showMessage('error', 'Login Failed: Network error. Check your internet connection.');
-                } else {
-                    showMessage('error', `Login Failed: ${error.message}`);
-                }
-            }
-        });
-        
-        // 5. Google Sign-In Handler
-        async function handleGoogleSignIn() {
-            if (!auth || !db) return;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                handleAuthSuccess(userCredential.user); // Triggers immediate redirect
+            } catch (error) {
+                console.error('Login error:', error.code, error.message);
+                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                    showMessage('error', 'Login Failed: Invalid email or password.');
+                } else if (error.code === 'auth/network-request-failed') {
+                    showMessage('error', 'Login Failed: Network error. Check your internet connection.');
+                } else {
+                    showMessage('error', `Login Failed: ${error.message}`);
+                }
+            }
+        });
+        
+        // 5. Google Sign-In Handler
+        async function handleGoogleSignIn() {
+            if (!auth || !db) return;
 
-            const provider = new GoogleAuthProvider();
-            provider.addScope('profile');
-            provider.addScope('email');
+            const provider = new GoogleAuthProvider();
+            provider.addScope('profile');
+            provider.addScope('email');
 
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                
-                // Check if this is a new user (first time sign-in)
-                const isNewUser = result.operationType === 'signIn' && result.additionalUserInfo.isNewUser;
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Check if this is a new user (first time sign-in)
+                const isNewUser = result.operationType === 'signIn' && result.additionalUserInfo.isNewUser;
 
-                if (isNewUser) {
-                    // Save user data to Firestore on first sign-in
-                    const profileRef = doc(db, 
-                        `artifacts/${appId}/users/${user.uid}/user_data/profile`
-                    );
-                    await setDoc(profileRef, {
-                        email: user.email, 
-                        displayName: user.displayName,
-                        provider: 'Google',
-                        createdAt: new Date().toISOString()
-                    }, { merge: true });
-                }
-                
-                handleAuthSuccess(user); // Triggers immediate redirect
+                if (isNewUser) {
+                    // Save user data to Firestore on first sign-in
+                    const profileRef = doc(db, 
+                        `artifacts/${appId}/users/${user.uid}/user_data/profile`
+                    );
+                    await setDoc(profileRef, {
+                        email: user.email, 
+                        displayName: user.displayName,
+                        provider: 'Google',
+                        createdAt: new Date().toISOString()
+                    }, { merge: true });
+                }
+                
+                handleAuthSuccess(user); // Triggers immediate redirect
 
-            } catch (error) {
-                console.error('Google Sign-In error:', error.code, error.message);
-                if (error.code === 'auth/popup-closed-by-user') {
-                     showMessage('error', 'Google Sign-In was cancelled.');
-                } else if (error.code === 'auth/network-request-failed') {
-                    showMessage('error', 'Google Sign-In Failed: Network error. Check your internet connection.');
-                } else {
-                    showMessage('error', `Google Sign-In Failed: ${error.message}`);
-                }
-            }
-        }
-        
-        googleSignInBtn.addEventListener('click', handleGoogleSignIn);
+            } catch (error) {
+                console.error('Google Sign-In error:', error.code, error.message);
+                if (error.code === 'auth/popup-closed-by-user') {
+                     showMessage('error', 'Google Sign-In was cancelled.');
+                } else if (error.code === 'auth/network-request-failed') {
+                    showMessage('error', 'Google Sign-In Failed: Network error. Check your internet connection.');
+                } else {
+                    showMessage('error', `Google Sign-In Failed: ${error.message}`);
+                }
+            }
+        }
+        
+        googleSignInBtn.addEventListener('click', handleGoogleSignIn);
 
 
-        // 6. Authentication State Listener 
-        if (auth) {
-            onAuthStateChanged(auth, (user) => {
-                const loggedOutButtonsContainer = document.getElementById('logged-out-buttons');
+        // 6. Authentication State Listener 
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
+                const loggedOutButtonsContainer = document.getElementById('logged-out-buttons');
 
-                if (user) {
-                    // FIX: If the user is found, immediately redirect to prevent the intermediate page from loading.
-                    userStatus.textContent = `Logged in. Redirecting to app...`;
-                    userStatus.classList.remove('bg-gray-700', 'text-gray-300');
-                    userStatus.classList.add('bg-green-700', 'text-white'); 
-                    
-                    window.location.href = REDIRECT_URL; // IMMEDIATE REDIRECT
+                if (user) {
+                    // FIX: If the user is found, immediately redirect to prevent the intermediate page from loading.
+                    userStatus.textContent = `Logged in. Redirecting to app...`;
+                    userStatus.classList.remove('bg-gray-700', 'text-gray-300');
+                    userStatus.classList.add('bg-green-700', 'text-white'); 
+                    
+                    window.location.href = REDIRECT_URL; // IMMEDIATE REDIRECT
 
-                } else {
-                    // LOGGED OUT: Show the full login/register form
-                    userStatus.textContent = 'Please log in or register.';
-                    userStatus.classList.remove('bg-green-700', 'text-white');
-                    userStatus.classList.add('bg-gray-700', 'text-gray-300'); 
-                    
-                    authForm.classList.remove('hidden');
-                    loggedOutButtonsContainer.classList.remove('hidden');
+                } else {
+                    // LOGGED OUT: Show the full login/register form
+                    userStatus.textContent = 'Please log in or register.';
+                    userStatus.classList.remove('bg-green-700', 'text-white');
+                    userStatus.classList.add('bg-gray-700', 'text-gray-300'); 
+                    
+                    authForm.classList.remove('hidden');
+                    loggedOutButtonsContainer.classList.remove('hidden');
 
-                    loggedInActions.classList.add('hidden'); 
+                    loggedInActions.classList.add('hidden'); 
 
-                    toggleForm(false); // Set default state to Login mode (with pulse animation)
-                }
-            });
-        }
-    </script>
+                    toggleForm(false); // Set default state to Login mode (with pulse animation)
+                }
+            });
+        }
+    </script>
 </body>
 </html>
