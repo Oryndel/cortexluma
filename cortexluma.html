@@ -153,37 +153,11 @@
         50% { border-color: white; }
     }
 
-    /* NEW USER PROFILE STYLES */
-    .user-profile-container {
-        position: relative;
-        padding-top: 1rem;
-    }
+    /* NEW USER PROFILE STYLES (Sidebar) */
     .user-profile-dropdown {
-        position: absolute;
-        bottom: 100%; /* Position above the user name */
-        left: 0;
-        width: 100%;
-        min-width: 180px;
         background-color: var(--code-bg); 
         border: 1px solid var(--input-border);
-        border-radius: 0.5rem;
         box-shadow: 0 -4px 10px var(--shadow-color);
-        z-index: 50;
-    }
-    .user-profile-button {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        text-align: left;
-        color: var(--text-color);
-        background-color: transparent;
-        border-radius: 0.5rem;
-        transition: background-color 0.15s;
-    }
-    .user-profile-button:hover {
-        background-color: var(--input-border);
-        cursor: pointer;
     }
   </style>
 </head>
@@ -192,105 +166,111 @@
   
   <canvas id="particle-canvas" class="particle-canvas"></canvas>
   
-  <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0 flex flex-col justify-between">
-    <div>
-        <div class="flex items-center space-x-2 mb-4">
-          <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
-          <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
+  <nav class="sidebar hidden md:flex flex-col w-56 p-4 flex-shrink-0">
+  
+    <div class="flex items-center space-x-2 mb-8">
+      <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
+      <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
+    </div>
+
+    <button 
+      id="new-chat-button"
+      onclick="newChat()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+      <span>New Chat</span>
+    </button>
+    
+    <button 
+      id="settings-button"
+      onclick="openSettingsModal()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+      <span>Settings</span>
+    </button>
+    
+    <button 
+      id="export-pdf-button"
+      onclick="exportChatAsPdf()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 4a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H5zm0 2h10v8H5V6zm4 2a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      <span>Export as PDF</span>
+    </button>
+    
+    <button 
+      id="theme-toggle-button"
+      onclick="toggleTheme()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <span id="theme-icon">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" />
+            </svg>
+        </span>
+      <span id="theme-text">Light Mode</span>
+    </button>
+
+    <button 
+      id="clear-history-button"
+      onclick="clearHistory()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+        </svg>
+      <span>Clear History</span>
+    </button>
+
+    <div class="flex-grow"></div>
+
+    <div class="mt-auto pt-4 border-t border-slate-700 relative">
+      <button 
+        id="user-profile-button"
+        class="w-full flex items-center space-x-3 p-2 rounded-lg text-left hover:bg-slate-700 transition duration-300"
+      >
+        <div id="user-profile-avatar-container" class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
+            <div class="h-4 w-4 bg-white/30 rounded-full animate-pulse"></div>
         </div>
 
+        <span id="user-profile-name" class="flex-1 truncate text-white font-medium">Loading...</span>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div 
+        id="user-profile-dropdown" 
+        class="user-profile-dropdown absolute bottom-full left-0 w-full mb-2 rounded-xl shadow-2xl p-2 z-10 hidden"
+      >
+        <div class="p-2 border-b border-slate-700 text-slate-400 text-sm truncate">
+            <span id="user-profile-email">email@loading.com</span>
+        </div>
         <button 
-          id="new-chat-button"
-          onclick="newChat()"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700"
+          id="logout-button" 
+          class="w-full text-left flex items-center space-x-2 px-3 py-2 rounded-lg text-red-400 hover:bg-slate-700 transition duration-300"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h5a1 1 0 000-2H4V4h4a1 1 0 100-2H3zm7 7a1 1 0 011-1h6.586l-1.293-1.293a1 1 0 111.414-1.414l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L17.586 11H11a1 1 0 01-1-1z" clip-rule="evenodd" />
           </svg>
-          <span>New Chat</span>
+          <span>Logout</span>
         </button>
-        
-        <div class="flex flex-col space-y-2 mt-4">
-            <button 
-              id="settings-button"
-              onclick="openSettingsModal()"
-              class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                </svg>
-              <span>Settings</span>
-            </button>
-            
-            <button 
-              id="export-pdf-button"
-              onclick="exportChatAsPdf()"
-              class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5 4a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H5zm0 2h10v8H5V6zm4 2a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z" clip-rule="evenodd" />
-                </svg>
-              <span>Export as PDF</span>
-            </button>
-            
-            <button 
-              id="clear-history-button"
-              onclick="clearHistory()"
-              class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
-                </svg>
-              <span>Clear History</span>
-            </button>
-        </div>
+      </div>
     </div>
-    
-    <div class="pt-4">
-        
-        <div class="user-profile-container relative">
-            <button 
-                id="user-profile-button" 
-                class="user-profile-button" 
-                aria-expanded="false" 
-                aria-controls="user-profile-dropdown"
-            >
-                <div id="user-profile-avatar" class="mr-3">
-                    <div class="h-7 w-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">
-                        U
-                    </div>
-                </div>
-                <span id="user-profile-name" class="font-medium text-sm truncate">Loading User...</span>
-            </button>
-
-            <div id="user-profile-dropdown" class="user-profile-dropdown hidden p-1">
-                <button id="logout-button" class="w-full flex items-center space-x-2 text-left py-2 px-3 text-sm text-red-400 hover:bg-slate-700/50 rounded-lg transition duration-150">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.707 3.293a1 1 0 00-1.414 1.414L14.586 10l-2.293 2.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414l-3-3z" clip-rule="evenodd" />
-                    </svg>
-                    <span>Log out</span>
-                </button>
-            </div>
-        </div>
-        
-        <button 
-          id="theme-toggle-button"
-          onclick="toggleTheme()"
-          class="w-full flex items-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
-        >
-            <span id="theme-icon">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" />
-                </svg>
-            </span>
-          <span id="theme-text">Light Mode</span>
-        </button>
-    </div>
-  </nav>
+</nav>
 
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.6</span></h1>
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.7</span></h1>
       <p class="text-slate-400 mt-1">Real-time chat, **multi-image** analysis, and **custom AI personality**. Check the settings panel!</p>
     </header>
 
@@ -399,17 +379,16 @@
         </div>
     </div>
     
-    <script>
+    <script type="module">
         // Use the new window.jspdf.jsPDF as a fallback if the library is loaded via UMD
         const jsPDF = window.jspdf ? window.jspdf.jsPDF : null;
         const html2canvas = window.html2canvas;
         
-        // --- FIREBASE LOGIC & UI MANAGEMENT (NEWLY ADDED) ---
+        // --- FIREBASE LOGIC & UI MANAGEMENT ---
         
         // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // ADDED: getAuth, onAuthStateChanged, signOut
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         
         // --- Firebase Configuration ---
         const FIREBASE_CONFIG = {
@@ -433,26 +412,80 @@
 
         // --- CONSTANTS ---
         const AUTH_URL = 'https://oryndel.github.io/cortexluma/index.html'; // Redirect to login page
+        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        const MAX_IMAGES = 4;
+        const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
+        const MAX_PROMPT_LENGTH = 1000;
+        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
+        const PARTICLES_COUNT = 50; 
 
-        // --- NEW UI REFERENCES ---
+        // --- DOM REFERENCES ---
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const errorMessage = document.getElementById('error-message');
+        const sendButton = document.getElementById('send-button');
+        const fileInput = document.getElementById('file-input');
+        const imagePreviews = document.getElementById('image-previews');
+        const imageCountText = document.getElementById('image-count-text');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const settingsModal = document.getElementById('settings-modal');
+        const temperatureSlider = document.getElementById('temperature-slider');
+        const temperatureValueDisplay = document.getElementById('temperature-value');
+        const maxTokensInput = document.getElementById('max-tokens-input');
+        const systemInstructionTextarea = document.getElementById('system-instruction-textarea');
         const userProfileBtn = document.getElementById('user-profile-button');
         const userProfileDropdown = document.getElementById('user-profile-dropdown');
         const userProfileName = document.getElementById('user-profile-name');
-        const userProfileAvatar = document.getElementById('user-profile-avatar');
         const logoutBtn = document.getElementById('logout-button');
         
-        // --- NEW FUNCTIONS ---
+        // NEW AVATAR REFERENCES
+        const userProfileAvatarContainer = document.getElementById('user-profile-avatar-container');
+        const userProfileEmail = document.getElementById('user-profile-email');
+
+
+        // --- STATE VARIABLES ---
+        let isLoading = false;
+        let chatHistory = []; 
+        let uploadedImages = []; 
+        let modelSettings = {}; 
+        let recognition;
+        let isDictating = false;
         
+        
+        // --- PROFILE & LOGOUT FUNCTIONS ---
+        
+        /** * Creates the avatar element (picture or initial) 
+         * @param {object} user - The Firebase User object
+         * @param {string} sizeClass - Tailwind class for size (e.g., 'h-8 w-8')
+         */
+        function createAvatarElement(user, sizeClass = 'h-8 w-8') {
+            const avatarContainer = document.createElement('div');
+            avatarContainer.className = `${sizeClass} rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden`;
+
+            if (user && user.photoURL) {
+                avatarContainer.innerHTML = `<img src="${user.photoURL}" alt="${user.displayName || 'User'}" class="h-full w-full object-cover">`;
+            } else if (user) {
+                const displayName = user.displayName || user.email.split('@')[0];
+                const initial = displayName.charAt(0).toUpperCase();
+                avatarContainer.textContent = initial;
+            } else {
+                // Fallback for non-logged-in state or error
+                avatarContainer.textContent = 'U';
+                avatarContainer.style.backgroundColor = '#9ca3af'; // Gray fallback
+            }
+            return avatarContainer;
+        }
+
         /** Handles user logout and redirection. */
-        async function handleLogout() {
+        function handleLogout() {
             if (!auth) {
                 errorMessage.textContent = 'Logout failed: Firebase Auth not initialized.';
                 return;
             }
             try {
-                await signOut(auth);
-                // Redirection is handled by the onAuthStateChanged listener, but we can force it here too.
-                window.location.href = AUTH_URL; 
+                // Firebase signs out the user. The onAuthStateChanged listener handles the redirect.
+                signOut(auth); 
             } catch (error) {
                 console.error("Logout failed:", error);
                 errorMessage.textContent = 'Logout failed. Please try again.';
@@ -466,42 +499,13 @@
             }
         }
 
-        // --- AUTH STATE LISTENER (CRITICAL FOR REDIRECT) ---
-        if (auth) {
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    // LOGGED IN: Update UI with user info
-                    const displayName = user.displayName || user.email.split('@')[0];
-                    const photoURL = user.photoURL;
-                    
-                    userProfileName.textContent = displayName;
-                    
-                    if (photoURL) {
-                        userProfileAvatar.innerHTML = `<img src="${photoURL}" alt="User Avatar" class="h-7 w-7 rounded-full object-cover">`;
-                    } else {
-                        // Default avatar (First letter of display name)
-                        const initial = displayName[0].toUpperCase();
-                        userProfileAvatar.innerHTML = `
-                            <div class="h-7 w-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">
-                                ${initial}
-                            </div>
-                        `;
-                    }
-
-                    console.log(`User is logged in: ${user.uid}`);
-                    
-                    // Attach event listeners for the new buttons
-                    if (userProfileBtn) userProfileBtn.onclick = window.toggleProfileDropdown;
-                    if (logoutBtn) logoutBtn.onclick = handleLogout;
-
-                } else {
-                    // LOGGED OUT: Redirect to login page
-                    console.log('User logged out or session expired. Redirecting...');
-                    window.location.href = AUTH_URL;
-                }
-            });
+        // --- IMMEDIATE EVENT LISTENERS (CRITICAL FOR BUTTON RELIABILITY) ---
+        if (userProfileBtn) {
+            userProfileBtn.addEventListener('click', window.toggleProfileDropdown);
         }
-
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
         // Attach listener for click outside the dropdown to close it
         document.addEventListener('click', (event) => {
             if (userProfileBtn && userProfileDropdown) {
@@ -512,43 +516,40 @@
             }
         });
 
+
+        // --- AUTH STATE LISTENER (CRITICAL FOR REDIRECT & UI UPDATE) ---
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // LOGGED IN: Update UI with user info
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    const photoURL = user.photoURL;
+                    const initial = displayName.charAt(0).toUpperCase();
+                    
+                    userProfileName.textContent = displayName;
+                    userProfileEmail.textContent = user.email;
+
+                    // Set Avatar Logic (Sidebar)
+                    if (userProfileAvatarContainer) {
+                         if (photoURL) {
+                             userProfileAvatarContainer.innerHTML = `<img src="${photoURL}" alt="${displayName}" class="h-full w-full object-cover">`;
+                         } else {
+                             userProfileAvatarContainer.textContent = initial;
+                             userProfileAvatarContainer.className = 'h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden';
+                         }
+                    }
+
+                    console.log(`User is logged in: ${user.uid}`);
+
+                } else {
+                    // LOGGED OUT: Redirect to login page
+                    console.log('User logged out or session expired. Redirecting...');
+                    window.location.href = AUTH_URL;
+                }
+            });
+        }
         // --- END FIREBASE LOGIC ---
 
-
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const chatMessages = document.getElementById('chat-messages');
-        const errorMessage = document.getElementById('error-message');
-        const sendButton = document.getElementById('send-button');
-        const fileInput = document.getElementById('file-input');
-        const imagePreviews = document.getElementById('image-previews');
-        const imageCountText = document.getElementById('image-count-text');
-        const imagePreviewContainer = document.getElementById('image-preview-container');
-        // const themeToggleButton = document.getElementById('theme-toggle-button'); // Removed, using onclick in HTML
-        const settingsModal = document.getElementById('settings-modal');
-        const temperatureSlider = document.getElementById('temperature-slider');
-        const temperatureValueDisplay = document.getElementById('temperature-value');
-        const maxTokensInput = document.getElementById('max-tokens-input');
-        const systemInstructionTextarea = document.getElementById('system-instruction-textarea');
-
-
-        // --- CONFIGURATION CONSTANTS ---
-        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
-        const MAX_IMAGES = 4;
-        const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
-        const MAX_PROMPT_LENGTH = 1000;
-        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
-        const PARTICLES_COUNT = 50; 
-
-        // --- STATE VARIABLES ---
-        let isLoading = false;
-        let chatHistory = []; 
-        let uploadedImages = []; 
-        let modelSettings = {}; 
-        
-        // --- SPEECH RECOGNITION STATE (NEW FEATURE) ---
-        let recognition;
-        let isDictating = false;
 
         // --- PARTICLE SYSTEM CLASSES (Background Feature) ---
         
@@ -576,7 +577,6 @@
 
                 // Boundary check: Wrap particles around
                 if (this.x < 0 || this.x > this.canvas.width || this.y < 0 || this.y > this.canvas.height) {
-                    // Reset position to the opposite side to simulate continuous movement
                     if (this.x < 0) this.x = this.canvas.width;
                     if (this.x > this.canvas.width) this.x = 0;
                     if (this.y < 0) this.y = this.canvas.height;
@@ -617,7 +617,6 @@
             }
 
             animate() {
-                // Standard clear for cleaner look (no trails)
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); 
 
                 for (let i = 0; i < this.particles.length; i++) {
@@ -629,9 +628,12 @@
             }
         }
         // --- END PARTICLE SYSTEM CLASSES ---
-
-
-        // --- LOCAL STORAGE & INIT ---
+        
+        
+        // --- UTILITY FUNCTIONS ---
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
         function saveHistory() {
             localStorage.setItem('cortexLumaHistory', JSON.stringify(chatHistory));
@@ -644,17 +646,28 @@
                 renderHistory();
             } else {
                  // Initial welcome message 
-                chatMessages.innerHTML = `
-                    <div class="flex justify-start">
-                        <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                            Hey there! I'm <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once!
-                        </div>
-                    </div>
-                `;
+                 addAIMessageToUI('ai-welcome', 'model', false, true);
             }
         }
         
-        // Save and Load Settings
+        function renderHistory() {
+            chatMessages.innerHTML = '';
+            chatHistory.forEach(message => {
+                const isUser = message.role === 'user';
+                
+                const textPart = message.parts.find(p => p.text) || { text: '' };
+                const imageParts = message.parts.filter(p => p.inlineData);
+                
+                if (isUser) {
+                    // Pass the whole image part including base64/inlineData for rendering
+                    addUserMessageToUI(textPart.text, imageParts, true); 
+                } else {
+                    addAIMessageToUI(null, 'model', true, textPart.text);
+                }
+            });
+            scrollToBottom();
+        }
+
         function saveSettings() {
             modelSettings = {
                 temperature: parseFloat(temperatureSlider.value),
@@ -681,8 +694,6 @@
             systemInstructionTextarea.value = modelSettings.systemInstruction || defaultInstruction;
         }
 
-        // --- CORE UI & STATE FUNCTIONS ---
-
         function setLoadingState(state) {
             isLoading = state;
             sendButton.disabled = state;
@@ -703,13 +714,8 @@
             }
             chatHistory = [];
             localStorage.removeItem('cortexLumaHistory'); 
-            chatMessages.innerHTML = `
-              <div class="flex justify-start">
-                <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                  Conversation history cleared! I'm ready for new questions or multi-image analysis.
-                </div>
-              </div>
-            `;
+            // Display welcome message after clearing
+            addAIMessageToUI('ai-cleared', 'model', false, 'Conversation history cleared! I\'m ready for new questions or multi-image analysis.');
             chatInput.focus();
             errorMessage.textContent = '';
             removeAllImages(); 
@@ -719,22 +725,6 @@
             clearHistory();
         }
         
-        /**
-         * Generic function to trigger a file download.
-         */
-        function downloadFile(filename, content, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // --- Export Chat as PDF Function ---
         window.exportChatAsPdf = function() {
             if (!jsPDF || !html2canvas) {
                 alert("PDF libraries (jsPDF/html2canvas) are not loaded. Cannot export chat.");
@@ -792,12 +782,8 @@
                 chatElement.scrollTop = originalScrollTop;
             });
         }
-        // --- END: Export Chat as PDF Function ---
         
-        // NOTE: exportChatAsMarkdown function was removed as requested.
-
-
-        // --- Speech Recognition (Mic) Functions (NEW FEATURE) ---
+        // --- Speech Recognition (Mic) Functions ---
         
         function setDictationState(listening) {
             isDictating = listening;
@@ -838,7 +824,6 @@
                 errorMessage.textContent = '';
                 
                 try {
-                     // Start recognition
                      if (chatInput.value.trim() && !confirm("Start new voice input? This will replace current text.")) {
                         return;
                      }
@@ -854,8 +839,6 @@
                 }
             }
         }
-        // --- END: Speech Recognition (Mic) Functions ---
-
 
         // --- Theme Toggle ---
         window.toggleTheme = function() {
@@ -865,7 +848,7 @@
                 localStorage.setItem('cortexLumaTheme', 'dark');
                 document.getElementById('theme-icon').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg>';
                 document.getElementById('theme-text').textContent = 'Light Mode';
-                document.querySelector('link[href*="atom-one-dark"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+                document.querySelector('link[href*="atom-one-light"]').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
             } else {
                 document.body.classList.add('light-mode');
                 localStorage.setItem('cortexLumaTheme', 'light');
@@ -877,7 +860,7 @@
 
         // --- Settings Modal Functions ---
         window.openSettingsModal = function() {
-            loadSettings(); // Ensure the latest saved settings are loaded into the controls
+            loadSettings(); 
             settingsModal.style.display = 'flex';
         }
 
@@ -889,14 +872,16 @@
             temperatureValueDisplay.textContent = e.target.value;
         });
         
-        window.saveSettings = saveSettings; // Expose to global scope for HTML onclick
+        window.saveSettings = saveSettings; 
+
 
         // --- Multi-Image Handling ---
+        
+        // ... (Your existing previewImages and removeAllImages functions are here, no change needed for this context)
 
         window.previewImages = function(event) {
             const files = Array.from(event.target.files);
             
-            // Clear current images if new files are selected
             uploadedImages = [];
             imagePreviews.innerHTML = '';
 
@@ -939,14 +924,12 @@
                     uploadedImages.push(imageObject);
                     validImagesCount++;
 
-                    // Render preview thumbnail
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     img.alt = file.name;
                     img.className = 'uploaded-image-preview w-20 h-20 object-cover rounded shadow-md';
                     imagePreviews.appendChild(img);
 
-                    // Update count when rendering is complete
                     imageCountText.textContent = `${validImagesCount} Images`;
                 };
                 reader.readAsDataURL(file);
@@ -975,32 +958,12 @@
         }
 
 
-        // --- UI Rendering Functions ---
-
-        // Render existing history from local storage
-        function renderHistory() {
-            chatMessages.innerHTML = '';
-            chatHistory.forEach(message => {
-                const isUser = message.role === 'user';
-                
-                // Get the text part (the last part is usually the text)
-                const textPart = message.parts.find(p => p.text) || { text: '' };
-                
-                // Get the image parts (if any)
-                const imageParts = message.parts.filter(p => p.inlineData);
-                
-                addUserMessageToUI(textPart.text, imageParts, isUser);
-            });
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-
-        // Token Estimator
+        // --- UI Rendering Functions (UPDATED FOR AVATAR) ---
+        
         function estimateTokens(text) {
             return Math.ceil(text.length / 4);
         }
 
-        // Code Copy Function
         window.copyCode = function(button) {
             const codeBlock = button.closest('.code-container').querySelector('code');
             const code = codeBlock.innerText;
@@ -1011,13 +974,9 @@
                 setTimeout(() => {
                     button.innerHTML = originalText;
                 }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                button.innerHTML = 'Error';
             });
         }
         
-        // Renders markdown content including code blocks and lists
         function renderMarkdown(text) {
              let html = text;
              const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -1025,7 +984,6 @@
                  const language = lang ? lang.trim() : 'plaintext';
                  const languageClass = `language-${language}`;
                  
-                 // Use a container for relative positioning of the copy button
                  return `
                     <div class="code-container relative mt-3 mb-3">
                         <div class="absolute top-0 right-0 p-2 text-xs text-slate-400 rounded-tr-lg rounded-bl-lg z-10" style="background-color: var(--input-bg);">
@@ -1052,108 +1010,99 @@
              return html;
         }
         
-
-
-        // Renders User Message (and can be used to render history messages)
-        function addUserMessageToUI(prompt, imageArray, isHistory = false) {
+        /** * Renders the AI message.
+         * @param {string|null} messageId - ID for the bubble (used for streaming).
+         * @param {string} role - Message role.
+         * @param {boolean} isHistory - If message is from history.
+         * @param {string|null} text - The text content (if not streaming).
+         */
+        function addAIMessageToUI(messageId, role, isHistory = false, text = null) {
             const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex justify-${isHistory ? 'start' : 'end'}`;
+            messageWrapper.className = `flex justify-start space-x-2 chat-bubble`;
+
+            // AI Avatar (Static icon)
+            const aiAvatarContainer = document.createElement('div');
+            aiAvatarContainer.className = 'h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white flex-shrink-0';
+            aiAvatarContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-7-4a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1v-2zm7 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z" clip-rule="evenodd" />
+            </svg>`;
+            
+            messageWrapper.appendChild(aiAvatarContainer);
 
             const messageBubble = document.createElement('div');
-            // If it's a history item, render with markdown immediately
-            if (isHistory) {
-                messageBubble.innerHTML = renderMarkdown(prompt);
+            messageBubble.className = `ai-bubble p-3 rounded-xl rounded-tr-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out`;
+            if (messageId) messageBubble.id = messageId;
+            
+            if (isHistory && text) {
+                 messageBubble.innerHTML = renderMarkdown(text);
+                 // Apply Syntax Highlighting for history items
+                 messageBubble.querySelectorAll('.code-container pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                 });
+            } else if (!isHistory && text) {
+                // For welcome/cleared message
+                messageBubble.innerHTML = text;
             } else {
-                messageBubble.innerHTML = prompt || (imageArray.length > 0 ? 'Analyzing uploaded image(s)...' : '');
+                 // Typewriter loading effect for streaming
+                messageBubble.innerHTML = `<div class="typewriter-placeholder">Thinking...</div>`;
             }
 
-            messageBubble.className = `p-3 rounded-xl rounded-${isHistory ? 'tl' : 'br'}-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out chat-bubble ${isHistory ? 'ai-bubble' : 'user-bubble'}`;
+            messageWrapper.appendChild(messageBubble);
+            chatMessages.appendChild(messageWrapper);
+            scrollToBottom();
+
+            return messageBubble;
+        }
+
+
+        /**
+         * Renders the User message.
+         * @param {string} prompt - The user's text message.
+         * @param {Array<Object>} imageArray - Array of image parts (with base64 or inlineData).
+         * @param {boolean} isHistory - If message is from history.
+         */
+        function addUserMessageToUI(prompt, imageArray, isHistory = false) {
+            const messageWrapper = document.createElement('div');
+            // User message is on the right, avatar is on the far right
+            messageWrapper.className = `flex justify-end space-x-2 chat-bubble`; 
             
-            // Add image previews if available
+            // 1. Get User for Avatar
+            const user = auth.currentUser; 
+
+            // 2. Create the message bubble
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `user-bubble p-3 rounded-xl rounded-br-none max-w-xs md:max-w-xl text-sm shadow-md transition duration-300 ease-in-out`;
+            messageBubble.innerHTML = prompt || (imageArray.length > 0 ? 'Analyzing uploaded image(s)...' : '');
+            
+            // 3. Add image previews if available
             if (imageArray && imageArray.length > 0) {
                 const previewContainer = document.createElement('div');
                 previewContainer.className = 'flex space-x-2 mt-2 flex-wrap';
                 
                 imageArray.forEach(image => {
-                    // Extract base64 from the GenerativePart structure
-                    const base64 = isHistory ? image.inlineData.data : image.base64; 
-                    const mimeType = isHistory ? image.inlineData.mimeType : image.mimeType;
+                    // Handle structure for both local upload (base64) and history (inlineData)
+                    const base64 = image.base64 || (image.inlineData ? image.inlineData.data : ''); 
+                    const mimeType = image.mimeType || (image.inlineData ? image.inlineData.mimeType : '');
 
                     const img = document.createElement('img');
                     img.src = `data:${mimeType};base64,${base64}`;
-                    img.className = 'uploaded-image-preview w-20 h-20 object-cover';
+                    img.className = 'uploaded-image-preview w-20 h-20 object-cover rounded';
                     previewContainer.appendChild(img);
                 });
                 
                 messageBubble.appendChild(previewContainer);
             }
             
-            // Apply Syntax Highlighting for history items
-            if (isHistory) {
-                messageBubble.querySelectorAll('.code-container pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-            }
+            // 4. Create Avatar
+            const avatar = createAvatarElement(user, 'h-8 w-8'); 
 
+            // 5. Assemble: Message bubble comes first (to the left), then avatar (to the right)
             messageWrapper.appendChild(messageBubble);
+            messageWrapper.appendChild(avatar);
+
+            // 6. Append to chat and scroll
             chatMessages.appendChild(messageWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Creates the streaming AI message container
-        function addModelStreamMessage() {
-            const startTime = Date.now(); 
-            
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = 'flex justify-start';
-
-            const messageBubble = document.createElement('div');
-            messageBubble.className = 'ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble';
-            
-            // Typewriter loading effect
-            messageBubble.innerHTML = `<div class="typewriter-placeholder">Thinking...</div>`;
-
-            messageWrapper.appendChild(messageBubble);
-            chatMessages.appendChild(messageWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            let fullResponseText = '';
-
-            return (chunk, isDone) => {
-                const placeholder = messageBubble.querySelector('.typewriter-placeholder');
-                if (placeholder) {
-                    placeholder.remove();
-                }
-
-                // If chunk is not empty, append text and update scroll
-                if (chunk) {
-                    fullResponseText += chunk;
-                    messageBubble.innerText = fullResponseText; 
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-                
-                // Final timing/token display on completion
-                if (isDone) {
-                    const endTime = Date.now();
-                    const durationMs = endTime - startTime;
-                    const durationSeconds = (durationMs / 1000).toFixed(2);
-                    const tokenCount = estimateTokens(fullResponseText);
-                    
-                    const footer = document.createElement('div');
-                    footer.className = 'text-xs text-indigo-200 mt-2 pt-2 border-t border-indigo-400/50';
-                    footer.innerHTML = `Time: ${durationSeconds}s | Est. Tokens: ${tokenCount}`;
-                    
-                    // FINAL STEP: Re-render the final response with full markdown
-                    const finalBubble = chatMessages.lastChild.querySelector('div:nth-child(1)'); // Target the bubble div
-                    finalBubble.innerHTML = renderMarkdown(fullResponseText);
-                    finalBubble.appendChild(footer); // Re-append the footer
-                    
-                    // Apply Syntax Highlighting
-                    finalBubble.querySelectorAll('.code-container pre code').forEach((block) => {
-                        hljs.highlightElement(block);
-                    });
-                }
-            };
+            scrollToBottom();
         }
 
 
@@ -1162,13 +1111,13 @@
             setLoadingState(true);
             
             // 1. Add user message to UI
-            const userImageParts = uploadedImages.map(img => ({inlineData: base64ToGenerativePart(img.base64, img.mimeType).inlineData, base64: img.base64, mimeType: img.mimeType}));
-            addUserMessageToUI(prompt, userImageParts, false);
+            const userImagePartsForUI = uploadedImages.map(img => ({...img})); // Deep copy for UI to prevent mutation
+            addUserMessageToUI(prompt, userImagePartsForUI, false);
 
             // 2. Prepare payload for the server
             const imagePartsForServer = uploadedImages.map(img => base64ToGenerativePart(img.base64, img.mimeType));
             
-            // 3. Add the new user message to history for server processing
+            // 3. Add the new user message to history
             chatHistory.push({ role: "user", parts: [{ text: prompt }, ...imagePartsForServer] }); 
 
             // 4. Prepare a dedicated container for the streaming response
@@ -1182,7 +1131,6 @@
                     body: JSON.stringify({ 
                         history: chatHistory, 
                         imageParts: imagePartsForServer,
-                        // Send model settings
                         temperature: modelSettings.temperature,
                         maxOutputTokens: modelSettings.maxOutputTokens,
                         systemInstruction: modelSettings.systemInstruction,
@@ -1218,7 +1166,8 @@
             } catch (error) {
                 console.error('Frontend Error:', error);
                 
-                // Remove the last user message and the streaming placeholder
+                // Rollback: Remove the last user message and the streaming placeholder/error
+                // Simple rollback for front-end history display
                 if (chatMessages.lastChild) {
                     chatMessages.lastChild.remove(); 
                 }
@@ -1233,6 +1182,47 @@
                 removeAllImages(); 
                 chatInput.focus();
             }
+        }
+        
+        // This is the core logic that updates the AI's message during streaming
+        function addModelStreamMessage() {
+            const startTime = Date.now(); 
+            const messageBubble = addAIMessageToUI('ai-streaming', 'model'); // Creates the message wrapper/bubble with the loading indicator
+
+            let fullResponseText = '';
+
+            return (chunk, isDone) => {
+                const placeholder = messageBubble.querySelector('.typewriter-placeholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+
+                if (chunk) {
+                    fullResponseText += chunk;
+                    messageBubble.innerText = fullResponseText; 
+                    scrollToBottom();
+                }
+                
+                if (isDone) {
+                    const endTime = Date.now();
+                    const durationMs = endTime - startTime;
+                    const durationSeconds = (durationMs / 1000).toFixed(2);
+                    const tokenCount = estimateTokens(fullResponseText);
+                    
+                    const footer = document.createElement('div');
+                    footer.className = 'text-xs text-indigo-200 mt-2 pt-2 border-t border-indigo-400/50';
+                    footer.innerHTML = `Time: ${durationSeconds}s | Est. Tokens: ${tokenCount}`;
+                    
+                    // FINAL STEP: Re-render the final response with full markdown
+                    messageBubble.innerHTML = renderMarkdown(fullResponseText);
+                    messageBubble.appendChild(footer); 
+                    
+                    // Apply Syntax Highlighting
+                    messageBubble.querySelectorAll('.code-container pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+            };
         }
         
 
@@ -1280,7 +1270,7 @@
 
         // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
-            // Speech Recognition Setup (NEW FEATURE)
+            // Speech Recognition Setup
             if (window.SpeechRecognition || window.webkitSpeechRecognition) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
@@ -1291,7 +1281,6 @@
                 recognition.onresult = function(event) {
                     for (let i = event.resultIndex; i < event.results.length; ++i) {
                         if (event.results[i].isFinal) {
-                            // Append the final transcript to the input, then simulate 'input' to auto-resize
                             chatInput.value += event.results[i][0].transcript;
                             chatInput.dispatchEvent(new Event('input')); 
                         }
@@ -1309,13 +1298,12 @@
                 };
                 
             } else {
-                // Hide the mic button if not supported
                 const micButton = document.getElementById('microphone-button');
                 if (micButton) micButton.style.display = 'none';
                 console.warn('Speech Recognition not supported in this browser.');
             }
 
-            // FEATURE: Initialize Particle System
+            // Initialize Particle System
             if (document.getElementById('particle-canvas')) {
                 new ParticleSystem('particle-canvas');
             }
