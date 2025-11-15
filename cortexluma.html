@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CortexLuma AI - Real-Time Multi-Modal Chat 📸</title>
+  <title>CortexLuma AI - Real-Time Multi-Modal Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +12,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <style>
-    /* BASE VARIABLES (FEATURE 8: Theme Toggle) */
+    /* BASE VARIABLES (Theme Toggle) */
     :root {
         --bg-start: #0f172a;
         --bg-end: #1e293b;
@@ -28,7 +30,7 @@
         --shadow-color: rgba(99,102,241,0.15);
     }
     
-    /* LIGHT MODE (FEATURE 8: Theme Toggle) */
+    /* LIGHT MODE (Theme Toggle) */
     .light-mode {
         --bg-start: #f8fafc;
         --bg-end: #e2e8f0;
@@ -45,10 +47,22 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); 
+      /* Background gradient is now applied to the body, allowing canvas to sit underneath */
       color: var(--text-color);
       overflow-x: hidden; 
       transition: background-color 0.3s, color 0.3s;
+      position: relative; /* Needed for particle canvas */
+    }
+
+    /* FEATURE: Particle Canvas Styling */
+    .particle-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Place it behind everything */
+        background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); 
     }
 
     /* Scrollbar */
@@ -110,7 +124,7 @@
         color: var(--text-color);
     }
 
-    /* FEATURE 6: Modal Styles */
+    /* Modal Styles */
     .modal-overlay {
         background-color: rgba(0, 0, 0, 0.7);
     }
@@ -120,7 +134,7 @@
         color: var(--text-color);
     }
 
-    /* FEATURE 9: Typewriter Effect Placeholder */
+    /* Typewriter Effect Placeholder */
     .typewriter-placeholder {
         overflow: hidden; 
         white-space: nowrap; 
@@ -142,6 +156,8 @@
 </head>
 
 <body class="fade-page flex min-h-screen">
+  
+  <canvas id="particle-canvas" class="particle-canvas"></canvas>
   
   <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0">
     <div class="flex items-center space-x-2 mb-8">
@@ -172,6 +188,17 @@
     </button>
     
     <button 
+      id="export-pdf-button"
+      onclick="exportChatAsPdf()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 4a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H5zm0 2h10v8H5V6zm4 2a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      <span>Export as PDF</span>
+    </button>
+    
+    <button 
       id="theme-toggle-button"
       onclick="toggleTheme()"
       class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
@@ -198,8 +225,8 @@
 
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
-      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
-      <p class="text-slate-400 mt-1">Real-time chat, **multi-image** 📸 analysis, and **custom AI personality**. Check the settings panel!</p>
+      <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.6</span></h1>
+      <p class="text-slate-400 mt-1">Real-time chat, **multi-image** analysis, and **custom AI personality**. Check the settings panel!</p>
     </header>
 
     <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
@@ -218,6 +245,19 @@
       <div class="relative flex items-center">
         <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" multiple class="hidden" onchange="previewImages(event)">
 
+        <button 
+            type="button" 
+            id="microphone-button"
+            onclick="toggleDictation()"
+            class="p-2 rounded-full text-white mr-2 transition duration-150"
+            style="background-color: #475569;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                <path d="M12 2a3 3 0 013 3v4a3 3 0 11-6 0V5a3 3 0 013-3z"/>
+                <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+        </button>
         <button 
             type="button" 
             id="image-upload-button"
@@ -295,6 +335,10 @@
     </div>
     
     <script>
+        // Use the new window.jspdf.jsPDF as a fallback if the library is loaded via UMD
+        const jsPDF = window.jspdf ? window.jspdf.jsPDF : null;
+        const html2canvas = window.html2canvas;
+
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
@@ -314,18 +358,104 @@
 
         // --- CONFIGURATION CONSTANTS ---
         const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
-        const MAX_IMAGES = 4; // FEATURE 5
+        const MAX_IMAGES = 4;
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
         const MAX_PROMPT_LENGTH = 1000;
         const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
+        const PARTICLES_COUNT = 50; 
 
         // --- STATE VARIABLES ---
         let isLoading = false;
         let chatHistory = []; 
-        let uploadedImages = []; // FEATURE 5: Array of { base64: string, mimeType: string, filename: string }
-        let modelSettings = {}; // FEATURE 7: Stored in localStorage
+        let uploadedImages = []; 
+        let modelSettings = {}; 
+        
+        // --- SPEECH RECOGNITION STATE (NEW FEATURE) ---
+        let recognition;
+        let isDictating = false;
 
-        // --- LOCAL STORAGE & INIT (FEATURE 7) ---
+        // --- PARTICLE SYSTEM CLASSES (Background Feature) ---
+        
+        class Particle {
+            constructor(canvas, ctx) {
+                this.canvas = canvas;
+                this.ctx = ctx;
+                this.reset();
+            }
+
+            reset() {
+                // Initialize particle randomly across the screen
+                this.x = Math.random() * this.canvas.width;
+                this.y = Math.random() * this.canvas.height;
+                this.size = Math.random() * 2 + 1; // Size between 1 and 3
+                this.speedX = Math.random() * 1.5 - 0.75; // Speed between -0.75 and 0.75
+                this.speedY = Math.random() * 1.5 - 0.75;
+                // Indigo color with varying, low opacity
+                this.color = 'rgba(79, 70, 229, ' + (Math.random() * 0.5 + 0.1) + ')'; 
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Boundary check: Wrap particles around
+                if (this.x < 0 || this.x > this.canvas.width || this.y < 0 || this.y > this.canvas.height) {
+                    // Reset position to the opposite side to simulate continuous movement
+                    if (this.x < 0) this.x = this.canvas.width;
+                    if (this.x > this.canvas.width) this.x = 0;
+                    if (this.y < 0) this.y = this.canvas.height;
+                    if (this.y > this.canvas.height) this.y = 0;
+                }
+            }
+
+            draw() {
+                this.ctx.fillStyle = this.color;
+                this.ctx.beginPath();
+                this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+        }
+
+        class ParticleSystem {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                window.addEventListener('resize', this.resize.bind(this));
+
+                for (let i = 0; i < PARTICLES_COUNT; i++) {
+                    this.particles.push(new Particle(this.canvas, this.ctx));
+                }
+
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            animate() {
+                // Standard clear for cleaner look (no trails)
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); 
+
+                for (let i = 0; i < this.particles.length; i++) {
+                    this.particles[i].update();
+                    this.particles[i].draw();
+                }
+
+                requestAnimationFrame(this.animate.bind(this));
+            }
+        }
+        // --- END PARTICLE SYSTEM CLASSES ---
+
+
+        // --- LOCAL STORAGE & INIT ---
 
         function saveHistory() {
             localStorage.setItem('cortexLumaHistory', JSON.stringify(chatHistory));
@@ -337,18 +467,18 @@
                 chatHistory = JSON.parse(history);
                 renderHistory();
             } else {
-                 // Initial welcome message if no history found
+                 // Initial welcome message 
                 chatMessages.innerHTML = `
                     <div class="flex justify-start">
                         <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
-                            Hey there 👋 I’m <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once!
+                            Hey there! I'm <span class="text-indigo-200 font-semibold">CortexLuma</span>. I can answer questions with up-to-date information and analyze up to ${MAX_IMAGES} images at once!
                         </div>
                     </div>
                 `;
             }
         }
         
-        // FEATURE 7, 6: Save and Load Settings
+        // Save and Load Settings
         function saveSettings() {
             modelSettings = {
                 temperature: parseFloat(temperatureSlider.value),
@@ -359,9 +489,9 @@
         }
 
         function loadSettings() {
-            const settings = localStorage.getItem('cortexLumaSettings');
-            const defaultInstruction = "You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Google. You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging.";
+            const defaultInstruction = "You are CortexLuma, a powerful, witty, and highly helpful AI assistant built by Google. You excel at real-time data retrieval and coding tasks. Keep your answers concise, clear, and engaging. Do not discuss your ability to generate images as you are a chat-only assistant.";
             
+            const settings = localStorage.getItem('cortexLumaSettings');
             modelSettings = settings ? JSON.parse(settings) : {
                 temperature: 0.7,
                 maxOutputTokens: 2048,
@@ -396,7 +526,7 @@
                 }
             }
             chatHistory = [];
-            localStorage.removeItem('cortexLumaHistory'); // FEATURE 7: Clear Local Storage
+            localStorage.removeItem('cortexLumaHistory'); 
             chatMessages.innerHTML = `
               <div class="flex justify-start">
                 <div class="ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow chat-bubble text-white">
@@ -412,8 +542,146 @@
         function newChat() {
             clearHistory();
         }
+        
+        /**
+         * Generic function to trigger a file download.
+         */
+        function downloadFile(filename, content, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
-        // --- FEATURE 8: Theme Toggle ---
+        // --- Export Chat as PDF Function ---
+        function exportChatAsPdf() {
+            if (!jsPDF || !html2canvas) {
+                alert("PDF libraries (jsPDF/html2canvas) are not loaded. Cannot export chat.");
+                return;
+            }
+
+            const chatElement = document.getElementById('chat-messages');
+
+            // Temporarily hide the scrollbar to get a clean screenshot
+            const originalOverflowY = chatElement.style.overflowY;
+            chatElement.style.overflowY = 'visible';
+            
+            // Set the scroll position to the top before capturing
+            const originalScrollTop = chatElement.scrollTop;
+            chatElement.scrollTop = 0;
+
+            html2canvas(chatElement, { 
+                scale: 2, 
+                allowTaint: true,
+                useCORS: true,
+                scrollY: 0,
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 295; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                // Handle multi-page content
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                pdf.save(`CortexLuma_Chat_Export_${new Date().toISOString().slice(0, 10)}.pdf`);
+
+                // Restore original state
+                chatElement.style.overflowY = originalOverflowY;
+                chatElement.scrollTop = originalScrollTop;
+
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                alert("Failed to generate PDF. Check console for details.");
+
+                // Ensure original state is restored even on error
+                chatElement.style.overflowY = originalOverflowY;
+                chatElement.scrollTop = originalScrollTop;
+            });
+        }
+        // --- END: Export Chat as PDF Function ---
+        
+        // NOTE: exportChatAsMarkdown function was removed as requested.
+
+
+        // --- Speech Recognition (Mic) Functions (NEW FEATURE) ---
+        
+        function setDictationState(listening) {
+            isDictating = listening;
+            const micButton = document.getElementById('microphone-button');
+            const micSVGListening = `
+                <svg class="animate-pulse h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 013 3v4a3 3 0 11-6 0V5a3 3 0 013-3z"/>
+                    <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="22"/>
+                </svg>
+            `;
+            const micSVGIdle = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                    <path d="M12 2a3 3 0 013 3v4a3 3 0 11-6 0V5a3 3 0 013-3z"/>
+                    <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="22"/>
+                </svg>
+            `;
+
+            if (listening) {
+                micButton.style.backgroundColor = '#ef4444'; // Red for listening
+                micButton.innerHTML = micSVGListening;
+            } else {
+                micButton.style.backgroundColor = '#475569'; // Original color
+                micButton.innerHTML = micSVGIdle;
+            }
+        }
+        
+        window.toggleDictation = function() {
+            if (!recognition) {
+                errorMessage.textContent = "Voice recognition is not supported in your browser.";
+                return;
+            }
+
+            if (isDictating) {
+                recognition.stop();
+            } else {
+                errorMessage.textContent = '';
+                
+                try {
+                     // Start recognition
+                     if (chatInput.value.trim() && !confirm("Start new voice input? This will replace current text.")) {
+                        return;
+                     }
+                     chatInput.value = ''; // Clear input if starting new dictation
+                     
+                     recognition.start();
+                     setDictationState(true);
+                     chatInput.focus();
+                } catch (e) {
+                     console.error("Failed to start recognition:", e);
+                     errorMessage.textContent = 'Failed to start voice recognition. Check mic permissions.';
+                     setDictationState(false);
+                }
+            }
+        }
+        // --- END: Speech Recognition (Mic) Functions ---
+
+
+        // --- Theme Toggle ---
         function toggleTheme() {
             const isDarkMode = document.body.classList.contains('light-mode');
             if (isDarkMode) {
@@ -431,7 +699,7 @@
             }
         }
 
-        // --- FEATURE 6: Settings Modal Functions ---
+        // --- Settings Modal Functions ---
         function openSettingsModal() {
             loadSettings(); // Ensure the latest saved settings are loaded into the controls
             settingsModal.style.display = 'flex';
@@ -445,7 +713,7 @@
             temperatureValueDisplay.textContent = e.target.value;
         });
         
-        // --- FEATURE 5: Multi-Image Handling ---
+        // --- Multi-Image Handling ---
 
         function previewImages(event) {
             const files = Array.from(event.target.files);
@@ -549,8 +817,7 @@
         }
 
 
-        // FEATURE 10 (Part of Response Timing/Token Count): Token Estimator
-        // Very rough estimate based on 4 chars/token heuristic
+        // Token Estimator
         function estimateTokens(text) {
             return Math.ceil(text.length / 4);
         }
@@ -572,7 +839,7 @@
             });
         }
         
-        // FEATURE MODIFIED: Code blocks now include a copy button
+        // Renders markdown content including code blocks and lists
         function renderMarkdown(text) {
              let html = text;
              const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -657,7 +924,7 @@
 
         // Creates the streaming AI message container
         function addModelStreamMessage() {
-            const startTime = Date.now(); // FEATURE 10: Start timer
+            const startTime = Date.now(); 
             
             const messageWrapper = document.createElement('div');
             messageWrapper.className = 'flex justify-start';
@@ -665,7 +932,7 @@
             const messageBubble = document.createElement('div');
             messageBubble.className = 'ai-bubble p-3 rounded-xl rounded-tl-none max-w-xs md:max-w-xl text-sm shadow-md chat-bubble';
             
-            // FEATURE 9: Typewriter loading effect
+            // Typewriter loading effect
             messageBubble.innerHTML = `<div class="typewriter-placeholder">Thinking...</div>`;
 
             messageWrapper.appendChild(messageBubble);
@@ -687,7 +954,7 @@
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
                 
-                // FEATURE 10: Final timing/token display on completion
+                // Final timing/token display on completion
                 if (isDone) {
                     const endTime = Date.now();
                     const durationMs = endTime - startTime;
@@ -698,7 +965,7 @@
                     footer.className = 'text-xs text-indigo-200 mt-2 pt-2 border-t border-indigo-400/50';
                     footer.innerHTML = `Time: ${durationSeconds}s | Est. Tokens: ${tokenCount}`;
                     
-                    // 5. FINAL STEP: Re-render the final response with full markdown
+                    // FINAL STEP: Re-render the final response with full markdown
                     const finalBubble = chatMessages.lastChild.querySelector('div:nth-child(1)'); // Target the bubble div
                     finalBubble.innerHTML = renderMarkdown(fullResponseText);
                     finalBubble.appendChild(footer); // Re-append the footer
@@ -737,7 +1004,7 @@
                     body: JSON.stringify({ 
                         history: chatHistory, 
                         imageParts: imagePartsForServer,
-                        // FEATURE 1, 2, 3: Send model settings
+                        // Send model settings
                         temperature: modelSettings.temperature,
                         maxOutputTokens: modelSettings.maxOutputTokens,
                         systemInstruction: modelSettings.systemInstruction,
@@ -768,7 +1035,7 @@
 
                 // 6. Update history with the complete model response
                 chatHistory.push({ role: "model", parts: [{ text: fullResponseText }] });
-                saveHistory(); // FEATURE 7: Save history
+                saveHistory(); 
 
             } catch (error) {
                 console.error('Frontend Error:', error);
@@ -791,7 +1058,7 @@
         }
         
 
-        // --- Event Listeners ---
+        // --- Event Listeners and Initial Setup ---
         
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -835,14 +1102,54 @@
 
         // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
-            // FEATURE 8: Load Theme
-            const savedTheme = localStorage.getItem('cortexLumaTheme');
-            if (savedTheme === 'light') {
-                toggleTheme(); // Call once to set to light mode if saved
+            // Speech Recognition Setup (NEW FEATURE)
+            if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false; 
+                recognition.interimResults = true; 
+                recognition.lang = 'en-US';
+
+                recognition.onresult = function(event) {
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            // Append the final transcript to the input, then simulate 'input' to auto-resize
+                            chatInput.value += event.results[i][0].transcript;
+                            chatInput.dispatchEvent(new Event('input')); 
+                        }
+                    }
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    setDictationState(false);
+                    errorMessage.textContent = 'Voice recognition error: ' + event.error;
+                };
+                
+                recognition.onend = function() {
+                    setDictationState(false);
+                };
+                
+            } else {
+                // Hide the mic button if not supported
+                const micButton = document.getElementById('microphone-button');
+                if (micButton) micButton.style.display = 'none';
+                console.warn('Speech Recognition not supported in this browser.');
             }
 
-            loadSettings(); // FEATURE 7: Load model settings
-            loadHistory();  // FEATURE 7: Load chat history
+            // FEATURE: Initialize Particle System
+            if (document.getElementById('particle-canvas')) {
+                new ParticleSystem('particle-canvas');
+            }
+            
+            // Load Theme
+            const savedTheme = localStorage.getItem('cortexLumaTheme');
+            if (savedTheme === 'light') {
+                toggleTheme(); 
+            }
+
+            loadSettings(); 
+            loadHistory();  
             chatInput.focus();
         });
 
