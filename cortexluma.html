@@ -51,16 +51,26 @@
       transition: background-color 0.3s, color 0.3s;
     }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; }
-    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 6px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
 
+    /* Fade animation for chat bubbles */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .chat-bubble { animation: fadeInUp 0.3s ease; }
 
+    /* ChatGPT-like container */
     .chat-box {
       background-color: var(--chat-box-bg);
       backdrop-filter: blur(10px);
@@ -68,6 +78,7 @@
       transition: background-color 0.3s, border-color 0.3s;
     }
 
+    /* Input styling */
     #chat-input {
       background-color: var(--input-bg);
       border-color: var(--input-border);
@@ -75,113 +86,130 @@
     }
     .light-mode #chat-input::placeholder { color: #64748b; }
 
+    /* Sidebar Styling */
     .sidebar {
         background-color: var(--sidebar-bg);
         border-right-color: var(--input-border);
         transition: background-color 0.3s, border-color 0.3s;
     }
 
+    /* Code Blocks */
     .code-container pre {
         background-color: var(--code-bg) !important;
         border: 1px solid var(--input-border);
         transition: background-color 0.3s;
     }
     
-    .ai-bubble { background-color: var(--ai-bubble); color: white; }
-    .user-bubble { background-color: var(--user-bubble); color: var(--text-color); }
+    /* Chat Bubbles */
+    .ai-bubble {
+        background-color: var(--ai-bubble);
+        color: white;
+    }
+    .user-bubble {
+        background-color: var(--user-bubble);
+        color: var(--text-color);
+    }
 
-    .modal-overlay { background-color: rgba(0, 0, 0, 0.7); }
+    /* FEATURE 6: Modal Styles */
+    .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
     .modal-content {
         background-color: var(--input-bg);
         border: 1px solid var(--input-border);
         color: var(--text-color);
     }
 
+    /* FEATURE 9: Typewriter Effect Placeholder */
     .typewriter-placeholder {
         overflow: hidden; 
         white-space: nowrap; 
         border-right: 3px solid white; 
         width: 15ch;
-        animation: typing 1.5s steps(15) infinite, blink-caret 0.75s step-end infinite;
+        animation: 
+            typing 1.5s steps(15) infinite,
+            blink-caret 0.75s step-end infinite;
     }
-    @keyframes typing { from { width: 0 } to { width: 15ch } }
-    @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: white; } }
-    /* 🎙️ Dictation Mic Animations */
-#mic-button {
-  transition: all 0.3s ease;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-}
-#mic-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-}
-
-/* Mic idle pulse */
-@keyframes micIdlePulse {
-  0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-  50% { box-shadow: 0 0 18px rgba(99, 102, 241, 0.6); }
-  100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-}
-#mic-button:not(.recording) {
-  animation: micIdlePulse 2.5s infinite ease-in-out;
-}
-
-/* Mic active recording pulse (red glow) */
-@keyframes micRecordingPulse {
-  0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
-  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); transform: scale(1.15); }
-  100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1); }
-}
-#mic-button.recording {
-  background-color: #ef4444 !important;
-  animation: micRecordingPulse 1.2s infinite ease-in-out;
-}
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 15ch }
+    }
+    @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: white; }
+    }
   </style>
 </head>
 
 <body class="fade-page flex min-h-screen">
   
-  <!-- Sidebar -->
   <nav class="sidebar hidden md:block w-56 p-4 flex-shrink-0">
     <div class="flex items-center space-x-2 mb-8">
       <div class="h-6 w-6 bg-indigo-500 rounded-full animate-ping-slow"></div>
       <h2 class="text-lg font-bold text-indigo-400">CortexLuma</h2>
     </div>
 
-    <button id="new-chat-button" onclick="newChat()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+    <button 
+      id="new-chat-button"
+      onclick="newChat()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-white font-semibold transition duration-300 bg-indigo-600 hover:bg-indigo-700"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
       <span>New Chat</span>
     </button>
     
-    <button id="settings-button" onclick="openSettingsModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+    <button 
+      id="settings-button"
+      onclick="openSettingsModal()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.3-.872-2.886-.484-3.535 1.026-.295.708-.18 1.543.5 2.094.64.532.868 1.5.64 2.378-1.123 4.417-.678 6.477 1.353 7.827.844.55 1.761.884 2.65.884h.01c.889 0 1.806-.334 2.65-.884 2.03-1.35 2.475-3.41 1.353-7.827-.228-.878-.003-1.846.64-2.378.68-.551.795-1.386.5-2.094-.649-1.51-2.235-1.9-3.535-1.026a1.532 1.532 0 01-2.286-.948zM10 17a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
       <span>Settings</span>
     </button>
     
-    <button id="theme-toggle-button" onclick="toggleTheme()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300">
-      <span id="theme-icon"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" /></svg></span>
+    <button 
+      id="theme-toggle-button"
+      onclick="toggleTheme()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-slate-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <span id="theme-icon">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.293 13.707A8 8 0 016.207 2.707a8.001 8.001 0 1011.086 11.000z" />
+            </svg>
+        </span>
       <span id="theme-text">Light Mode</span>
     </button>
 
-    <button id="clear-history-button" onclick="clearHistory()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" /></svg>
+    <button 
+      id="clear-history-button"
+      onclick="clearHistory()"
+      class="w-full flex items-center justify-center space-x-2 px-3 py-2 mt-2 rounded-lg text-red-400 bg-slate-700 hover:bg-slate-600 transition duration-300"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+        </svg>
       <span>Clear History</span>
     </button>
   </nav>
 
-  <!-- Chat Interface -->
   <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
     <header class="text-center mb-4 flex-shrink-0">
       <h1 class="text-3xl font-bold text-indigo-400">CortexLuma AI <span class="text-sm align-super text-pink-400">v3.3</span></h1>
-      <p class="text-slate-400 mt-1">Real-time chat, <b>multi-image</b> 📸 analysis, and <b>custom AI personality</b>. Check the settings panel!</p>
+      <p class="text-slate-400 mt-1">Real-time chat, **multi-image** 📸 analysis, and **custom AI personality**. Check the settings panel!</p>
     </header>
 
-    <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl"></div>
+    <div id="chat-messages" class="chat-box p-4 flex-1 overflow-y-auto mb-4 flex flex-col space-y-4 shadow-xl">
+      </div>
 
     <form id="chat-form" class="flex flex-col space-y-2 flex-shrink-0">
       <div id="image-preview-container" class="flex items-center space-x-3 hidden p-2 rounded-lg border border-slate-700" style="background-color: var(--input-bg);">
         <span id="image-count-text" class="text-sm font-semibold text-indigo-400">0 Images</span>
-        <div id="image-previews" class="flex space-x-2 overflow-x-auto p-1"></div>
+        <div id="image-previews" class="flex space-x-2 overflow-x-auto p-1">
+            </div>
         <button type="button" onclick="removeAllImages()" class="text-red-400 hover:text-red-300 transition flex-shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
         </button>
@@ -189,72 +217,84 @@
       
       <div class="relative flex items-center">
         <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" multiple class="hidden" onchange="previewImages(event)">
-        <button type="button" id="image-upload-button" onclick="document.getElementById('file-input').click()" class="p-2 rounded-full text-white mr-2 transition duration-150" style="background-color: #475569;">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-3v2z" clip-rule="evenodd" /></svg>
-        </button>
 
-        <textarea id="chat-input" class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden" rows="1" placeholder="Ask a question or upload image(s)..." style="min-height: 44px; max-height: 200px;"></textarea>
+        <button 
+            type="button" 
+            id="image-upload-button"
+            onclick="document.getElementById('file-input').click()"
+            class="p-2 rounded-full text-white mr-2 transition duration-150"
+            style="background-color: #475569;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-3v2z" clip-rule="evenodd" />
+            </svg>
+        </button>
         
-        <!-- 🎙️ Added Voice Dictation Button -->
-        <button type="button" id="mic-button" class="absolute right-12 bottom-2 bg-slate-600 hover:bg-slate-500 text-white p-2 rounded-full transition" title="Click to speak">
-          <svg xmlns="http://www.w3.org/2000/svg" id="mic-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 2a2 2 0 00-2 2v6a2 2 0 104 0V4a2 2 0 00-2-2zm-5 6a1 1 0 012 0 3 3 0 006 0 1 1 0 112 0 5 5 0 01-10 0zm5 7a7 7 0 007-7h-2a5 5 0 01-10 0H3a7 7 0 007 7zm-1 2h2v2h-2v-2z"/>
+        <textarea 
+          id="chat-input" 
+          class="flex-1 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 overflow-hidden"
+          rows="1"
+          placeholder="Ask a question or upload image(s)..."
+          style="min-height: 44px; max-height: 200px;"
+        ></textarea>
+        <button 
+          type="submit"
+          id="send-button"
+          class="absolute right-3 bottom-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" />
           </svg>
-        </button>
-
-        <button type="submit" id="send-button" class="absolute right-3 bottom-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.559a.578.578 0 0 0-1.188 0l-7.228 14.5A.578.578 0 0 0 3.235 17.5h13.53a.578.578 0 0 0 .587-.446l-7.228-14.5Z" /></svg>
         </button>
       </div>
       <div id="error-message" class="text-red-400 text-sm h-4"></div>
     </form>
   </div>
+    
+    <div id="settings-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50">
+        <div class="modal-content w-full max-w-lg p-6 rounded-xl shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b pb-2 border-indigo-400/50">
+                <h3 class="text-xl font-bold text-indigo-400">Model Configuration Settings</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
 
-  <!-- ⚙️ Settings Modal -->
-  <div id="settings-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50">
-    <div class="modal-content w-full max-w-lg p-6 rounded-xl shadow-2xl">
-        <div class="flex justify-between items-center mb-4 border-b pb-2 border-indigo-400/50">
-            <h3 class="text-xl font-bold text-indigo-400">Model Configuration Settings</h3>
-            <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <div class="mb-4">
+                <label for="temperature-slider" class="block text-sm font-medium mb-1">
+                    Creativity (Temperature): <span id="temperature-value" class="font-bold text-indigo-300">0.7</span>
+                </label>
+                <input type="range" id="temperature-slider" min="0" max="1" step="0.1" value="0.7" 
+                       class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer range-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p class="text-xs text-slate-400 mt-1">Lower value is more deterministic/factual (0.0), higher is more creative (1.0).</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="max-tokens-input" class="block text-sm font-medium mb-1">
+                    Maximum Response Length (Tokens):
+                </label>
+                <input type="number" id="max-tokens-input" min="128" max="4096" step="128" value="2048"
+                       class="w-full p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);">
+                <p class="text-xs text-slate-400 mt-1">The maximum number of tokens the model can generate (max 4096).</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="system-instruction-textarea" class="block text-sm font-medium mb-1">
+                    AI Personality / System Instruction:
+                </label>
+                <textarea id="system-instruction-textarea" rows="3"
+                          class="w-full p-2 border rounded-lg resize-none focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);"></textarea>
+                <p class="text-xs text-slate-400 mt-1">Define the AI's role, tone, and constraints.</p>
+            </div>
+
+            <button onclick="saveSettings(); closeSettingsModal()" 
+                    class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition">
+                Save Settings
             </button>
         </div>
-
-        <div class="mb-4">
-            <label for="temperature-slider" class="block text-sm font-medium mb-1">
-                Creativity (Temperature): <span id="temperature-value" class="font-bold text-indigo-300">0.7</span>
-            </label>
-            <input type="range" id="temperature-slider" min="0" max="1" step="0.1" value="0.7" 
-                   class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer range-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <p class="text-xs text-slate-400 mt-1">Lower value is more deterministic/factual (0.0), higher is more creative (1.0).</p>
-        </div>
-
-        <div class="mb-4">
-            <label for="max-tokens-input" class="block text-sm font-medium mb-1">
-                Maximum Response Length (Tokens):
-            </label>
-            <input type="number" id="max-tokens-input" min="128" max="4096" step="128" value="2048"
-                   class="w-full p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);">
-            <p class="text-xs text-slate-400 mt-1">The maximum number of tokens the model can generate (max 4096).</p>
-        </div>
-
-        <div class="mb-4">
-            <label for="system-instruction-textarea" class="block text-sm font-medium mb-1">
-                AI Personality / System Instruction:
-            </label>
-            <textarea id="system-instruction-textarea" rows="3"
-                      class="w-full p-2 border rounded-lg resize-none focus:ring-indigo-500 focus:border-indigo-500" style="background-color: var(--code-bg); border-color: var(--input-border);"></textarea>
-            <p class="text-xs text-slate-400 mt-1">Define the AI's role, tone, and constraints.</p>
-        </div>
-
-        <button onclick="saveSettings(); closeSettingsModal()" 
-                class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition">
-            Save Settings
-        </button>
     </div>
-  </div>
     
-  <script>
+    <script>
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
@@ -273,11 +313,11 @@
 
 
         // --- CONFIGURATION CONSTANTS ---
-        const TEXT_STREAM_URL = "https://cortexluma-backend.vercel.app/"; 
-        const MAX_IMAGES = 10; // FEATURE 5
+        const TEXT_STREAM_URL = "https://cortexluma-backend.onrender.com/api/stream-chat"; 
+        const MAX_IMAGES = 4; // FEATURE 5
         const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB limit
-        const MAX_PROMPT_LENGTH = 10000;
-        const ALLOWED_MIME_TYPES = 'image/jpeg','image/png','image/webp'];
+        const MAX_PROMPT_LENGTH = 1000;
+        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']; 
 
         // --- STATE VARIABLES ---
         let isLoading = false;
@@ -806,164 +846,6 @@
             chatInput.focus();
         });
 
-
-  // --- VOICE DICTATION FEATURE (complete) ---
-  // Uses Web Speech API (Chrome/Edge). Falls back gracefully if unsupported.
-  (function initDictation() {
-      let recognizing = false;
-      let recognition = null;
-      const micButton = document.getElementById('mic-button');
-      const micIcon = document.getElementById('mic-icon');
-
-      // Support both standard and webkit prefixed versions
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-      if (!SpeechRecognition) {
-          // If unsupported, disable mic button and show a tooltip
-          if (micButton) {
-              micButton.title = 'Speech recognition not supported in this browser';
-              micButton.disabled = true;
-              micButton.style.opacity = '0.6';
-          }
-          return;
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN'; // change as needed (en-US, hi-IN, etc.)
-      recognition.continuous = false; // stop automatically after pause
-      recognition.interimResults = true; // show interim results while speaking
-
-      recognition.onstart = () => {
-          recognizing = true;
-          if (micButton) micButton.style.backgroundColor = '#ef4444'; // red while listening
-          // optional: change icon to show recording (you can swap SVG or styles)
-      };
-
-      recognition.onresult = (event) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-              transcript += event.results[i][0].transcript;
-          }
-          // Put interim/final transcript into the chat input
-          chatInput.value = transcript;
-          chatInput.style.height = 'auto';
-          chatInput.style.height = (chatInput.scrollHeight) + 'px';
-          // Clear error message if any
-          errorMessage.textContent = '';
-      };
-
-      recognition.onerror = (event) => {
-          console.error('Speech recognition error:', event);
-          recognizing = false;
-          if (micButton) micButton.style.backgroundColor = '#475569';
-          // Show a friendly error
-          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-              errorMessage.textContent = 'Microphone access was blocked. Allow microphone and try again.';
-          } else {
-              errorMessage.textContent = 'Speech recognition error. Try again.';
-          }
-      };
-
-      recognition.onend = () => {
-          // Called when speech recognition service disconnects (user stopped speaking or stopped)
-          recognizing = false;
-          if (micButton) micButton.style.backgroundColor = '#475569';
-      };
-
-      micButton.addEventListener('click', () => {
-          if (!recognition) {
-              alert('Speech recognition not supported in this browser.');
-              return;
-          }
-          // Toggle start/stop
-          if (recognizing) {
-              recognition.stop();
-              recognizing = false;
-              if (micButton) micButton.style.backgroundColor = '#475569';
-          } else {
-              try {
-                  recognition.start();
-              } catch (err) {
-                  // Some browsers throw if start is called while already running
-                  console.warn('Speech recognition start error:', err);
-              }
-          }
-      });
-
-      // Optional: stop recognition when navigating away or on form submit to avoid leaks
-      window.addEventListener('beforeunload', () => {
-          if (recognition && recognizing) recognition.stop();
-      });
-
-  })();
-
-  // --- 🎙️ VOICE DICTATION FEATURE with animations ---
-(function initDictation() {
-  let recognizing = false;
-  let recognition = null;
-  const micButton = document.getElementById('mic-button');
-  const micIcon = document.getElementById('mic-icon');
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-  if (!SpeechRecognition) {
-    micButton.title = 'Speech recognition not supported';
-    micButton.disabled = true;
-    micButton.style.opacity = '0.5';
-    return;
-  }
-
-  recognition = new SpeechRecognition();
-  recognition.lang = 'en-IN';
-  recognition.continuous = false;
-  recognition.interimResults = true;
-
-  recognition.onstart = () => {
-    recognizing = true;
-    micButton.classList.add('recording');
-  };
-
-  recognition.onresult = (event) => {
-    let transcript = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
-    }
-    chatInput.value = transcript;
-    chatInput.style.height = 'auto';
-    chatInput.style.height = chatInput.scrollHeight + 'px';
-    errorMessage.textContent = '';
-  };
-
-  recognition.onerror = (event) => {
-    console.error('Speech recognition error:', event);
-    recognizing = false;
-    micButton.classList.remove('recording');
-    if (event.error === 'not-allowed') {
-      errorMessage.textContent = 'Mic access blocked. Allow and retry.';
-    } else {
-      errorMessage.textContent = 'Speech recognition error.';
-    }
-  };
-
-  recognition.onend = () => {
-    recognizing = false;
-    micButton.classList.remove('recording');
-  };
-
-  micButton.addEventListener('click', () => {
-    if (!recognition) return;
-    if (recognizing) {
-      recognition.stop();
-      recognizing = false;
-      micButton.classList.remove('recording');
-    } else {
-      recognition.start();
-    }
-  });
-
-  window.addEventListener('beforeunload', () => {
-    if (recognition && recognizing) recognition.stop();
-  });
-})();
-
-  </script>
+    </script>
 </body>
 </html>
